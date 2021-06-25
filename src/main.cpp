@@ -47,16 +47,15 @@ int main() {
 	// non-zero value
 	if (!init()) return -1;
 
-	uint32_t size;
+	UINT_T size;
 	bool success;
-	std::vector<float> vertices = OBJ_GenMesh("../glTests/assets/backpack/backpack.obj", size, success);
-	//for (uint16_t i = 0; i < vertices.size(); i += 4) {
-	//	printf("%f, %f, %f, %f\n", vertices[i], vertices[i + 1], vertices[i + 2], vertices[i + 3]);
-	//}
-	std::cout << "size: " << size << "\n";
+	OBJ_Data data = OBJ_GenMesh("../glTests/assets/backpack/backpack.obj", size, success);
+	std::cout << size << "\n";
 
-	std::string mtlfile = OBJ_GetMTLpath("../glTests/assets/backpack/backpack.obj", success);
-	std::cout << mtlfile << "\n";
+	for (INT_T i = 0; i < data.matIndexes.size(); ++i) {
+		printf("%d, %d\n", (int) data.matIndexes[i].first, (int) data.matIndexes[i].second);
+	}
+	
 
 	// main loop will continue to run if true
 	bool run = true;
