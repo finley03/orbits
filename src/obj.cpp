@@ -374,6 +374,7 @@ OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, bool& status) {
 						ptrnextvalue(lineptr);
 						materials.back().ambientTexturePath.assign(folderPath);
 						materials.back().ambientTexturePath.append(lineptr, strcspn(lineptr, " \n"));
+						materials.back().textureAmbient = true;
 						break;
 
 						// case for diffuse texture map
@@ -382,14 +383,16 @@ OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, bool& status) {
 						ptrnextvalue(lineptr);
 						materials.back().diffuseTexturePath.assign(folderPath);
 						materials.back().diffuseTexturePath.append(lineptr, strcspn(lineptr, " \n"));
+						materials.back().textureDiffuse = true;
 						break;
 
 						// case for specular texture map
 						// map_Ks
 					case 's':
 						ptrnextvalue(lineptr);
-						materials.back().diffuseTexturePath.assign(folderPath);
-						materials.back().diffuseTexturePath.append(lineptr, strcspn(lineptr, " \n"));
+						materials.back().specularTexturePath.assign(folderPath);
+						materials.back().specularTexturePath.append(lineptr, strcspn(lineptr, " \n"));
+						materials.back().textureSpecular = true;
 						break;
 
 					default:
@@ -508,15 +511,3 @@ OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, bool& status) {
 	status = true;
 	return objectData;
 }
-
-
-//std::vector<OBJ_Material> OBJ_GetMaterials(const char* filePath, bool& status) {
-//
-//
-//	return {};
-//}
-//
-//
-//std::vector<UINT_T> OBJ_GetMaterialIndexes(const char* filePath, const char* mtlFilePath, bool& status) {
-//	return {};
-//}

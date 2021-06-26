@@ -62,7 +62,7 @@ Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath, boo
 		char log[log_length];
 		// get full error message
 		glGetShaderInfoLog(fragmentShader, log_length, NULL, log);
-		std::cout << "fragment shader compile failed:\n" << log << "\n";
+		std::cout << "Fragment shader compile failed:\n" << log << "\n";
 		success = false;
 	}
 
@@ -120,6 +120,7 @@ void Shader::use() {
 // procedures for setting uniforms on the shader program
 // each of these procedures gets the location of the selected uniform
 // and then sets its value
+// all values are single precision
 
 void Shader::setFloat(const char* name, float value) {
 	glUniform1f(glGetUniformLocation(shaderProgram, name), value);

@@ -33,6 +33,8 @@ SDL_GLContext gl_context;
 
 Screen* screen;
 Timer* frameTimer;
+Camera* camera;
+Objects* objects;
 
 // forward definitions of main functions
 
@@ -47,15 +49,17 @@ int main() {
 	// non-zero value
 	if (!init()) return -1;
 
-	UINT_T size;
 	bool success;
-	OBJ_Data data = OBJ_GenMesh("../glTests/assets/backpack/backpack.obj", size, success);
-	std::cout << size << "\n";
+	/*UINT_T object1 = objects->newObject("../autopilotinterface/assets/cube2.obj", success);*/
+	UINT_T object1 = objects->newObject("../glTests/assets/MaleLow/MaleLow.obj", success);
+	float object1position[3] = { -2.0f, 0.0f, 0.0f };
+	objects->setPosition(object1, object1position);
+	//objects->newObject("../autopilotinterface/assets/cube2.obj", success);
 
-	for (INT_T i = 0; i < data.matIndexes.size(); ++i) {
-		printf("%d, %d\n", (int) data.matIndexes[i].first, (int) data.matIndexes[i].second);
-	}
-	
+	float position[3] = { -5.0f, 5.0f, 10.0f };
+	camera->setPosition(position);
+	camera->calculateProjectionMatrix();
+	camera->calculateViewMatrix();
 
 	// main loop will continue to run if true
 	bool run = true;
@@ -64,6 +68,9 @@ int main() {
 		screen->clear();
 
 		UI(window);
+
+		//objects->render(object);
+		objects->renderAll();
 
 		screen->swap();
 		frameTimer->delay();
@@ -79,6 +86,8 @@ int main() {
 // program should continue running
 bool handleEvents() {
 	bool run = true;
+
+	static ImGuiIO& io = ImGui::GetIO();
 
 	// handle OS events
 	while (SDL_PollEvent(&event)) {
@@ -102,6 +111,30 @@ bool handleEvents() {
 				height = event.window.data2;
 			}
 			break;
+
+			// case for a mouse motion event
+		case SDL_MOUSEMOTION:
+			// case for middle mouse button (revolve)
+			// only revolve if mouse is not over GUI window
+			if (event.motion.state & SDL_BUTTON_MMASK && !io.WantCaptureMouse) {
+				camera->mouseRevolve(event.motion.xrel, event.motion.yrel);
+				camera->calculateViewMatrix();
+			}
+			// case for right mouse button (translate on plane)
+			if (event.motion.state & SDL_BUTTON_RMASK && !io.WantCaptureMouse) {
+				camera->mouseTranslate(event.motion.xrel, event.motion.yrel);
+				camera->calculateViewMatrix();
+			}
+			break;
+
+			// case for mouse wheel event
+		case SDL_MOUSEWHEEL:
+			// check GUI window is not focused
+			if (!io.WantCaptureMouse) {
+				camera->mouseZoom(event.wheel.y);
+				camera->calculateViewMatrix();
+			}
+			break;
 		}
 	}
 
@@ -121,6 +154,12 @@ bool init() {
 		std::cout << "SDL failed to initialize: " << SDL_GetError() << "\n";
 		return false;
 	}
+
+	// enable antialising for window
+	// one multisample buffer
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	// 4 pixels compared in multisampling (might increase later)
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
 	// create the window
 	window = SDL_CreateWindow(
@@ -187,6 +226,10 @@ bool init() {
 	// initialize global objects (on heap)
 	screen = new Screen(window);
 	frameTimer = new Timer();
+	camera = new Camera();
+	bool objectStatus;
+	objects = new Objects(objectStatus);
+	if (!objectStatus) return false;
 
 	// set OpenGL flags for rendering
 
@@ -229,6 +272,8 @@ void shutdown() {
 	// delete heap allocated objects
 	delete screen;
 	delete frameTimer;
+	delete camera;
+	delete objects;
 
 	SDL_GL_DeleteContext(gl_context);
 	SDL_DestroyWindow(window);

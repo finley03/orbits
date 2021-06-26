@@ -11,9 +11,9 @@
 
 struct OBJ_Material {
 	float ambient[3] = {0.1f, 0.1f, 0.1f};
-	float diffuse[3] = {0.4f, 0.4f, 0.4f};
+	float diffuse[3] = {1.0f, 0.4f, 0.4f};
 	float specular[3] = {0.0f, 0.0f, 0.0f};
-	float emmision[3] = {0.0f, 0.0f, 0.0f};
+	//float emmision[3] = {0.0f, 0.0f, 0.0f};
 	float alpha = 1.0f;
 	float specularExponent = 32.0f;
 	bool textureDiffuse = false;
@@ -42,13 +42,5 @@ typedef struct {
 // float normalVector[3]
 // float textureCoords[2]
 OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, bool& status);
-
-//// Function returns all materials associated with an object
-//// pass name of mtl file
-//std::vector<OBJ_Material> OBJ_GetMaterials(const char* mtlFilePath, bool& status);
-//
-//// Function returns indexes of where materials are
-//// applied to an object
-//std::vector<UINT_T> OBJ_GetMaterialIndexes(const char* filePath, const char* mtlFilePath, bool& status);
 
 #endif
