@@ -117,6 +117,9 @@ OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, bool& status) {
 		// i.e. check if next char is newline
 		if (*lineptr == '\n') continue;
 
+		// keep track of number of triangles in line
+		UINT_T nrTriangles = 0;
+
 		// switch the first character of the line
 		// only compare one character for speed
 		switch (*lineptr) {
@@ -178,16 +181,69 @@ OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, bool& status) {
 			// f vertex1/vertexTexture1/vertexNormal1 vertex1/.......
 			// loop through face elements
 			// subtract 1 from indexes, as indexing in .obj starts from 1
-			for (INT_T i = 0; i < 3; ++i) {
-				ptrnextvalue(lineptr);
-				vertexIndexes.push_back(_INT atoi(lineptr) - 1);
-				ptrnextvalue(lineptr, '/');
-				textureIndexes.push_back(_INT atoi(lineptr) - 1);
-				ptrnextvalue(lineptr, '/');
-				normalIndexes.push_back(_INT atoi(lineptr) - 1);
-			}
+			//for (INT_T i = 0; i < 3; ++i) {
+			//	ptrnextvalue(lineptr);
+			//	vertexIndexes.push_back(_INT atoi(lineptr) - 1);
+			//	ptrnextvalue(lineptr, '/');
+			//	textureIndexes.push_back(_INT atoi(lineptr) - 1);
+			//	ptrnextvalue(lineptr, '/');
+			//	normalIndexes.push_back(_INT atoi(lineptr) - 1);
+			//}
 
-			size += 3;
+
+			UINT_T vertexes[3], textures[3], normals[3];
+			// get first values
+			ptrnextvalue(lineptr);
+			vertexes[0] = _INT atoi(lineptr) - 1;
+			ptrnextvalue(lineptr, '/');
+			textures[0] = _INT atoi(lineptr) - 1;
+			ptrnextvalue(lineptr, '/');
+			normals[0] = _INT atoi(lineptr) - 1;
+			// get second values
+			ptrnextvalue(lineptr);
+			vertexes[1] = _INT atoi(lineptr) - 1;
+			ptrnextvalue(lineptr, '/');
+			textures[1] = _INT atoi(lineptr) - 1;
+			ptrnextvalue(lineptr, '/');
+			normals[1] = _INT atoi(lineptr) - 1;
+
+			const char* spacePtr;
+
+			do {
+				// reserve memory
+				vertexIndexes.reserve(3);
+				textureIndexes.reserve(3);
+				normalIndexes.reserve(3);
+
+				// only shift data on repeats
+				if (nrTriangles++) {
+					vertexes[1] = vertexes[2];
+					textures[1] = textures[2];
+					normals[1] = normals[2];
+				}
+
+				// get third values
+				ptrnextvalue(lineptr);
+				vertexes[2] = _INT atoi(lineptr) - 1;
+				ptrnextvalue(lineptr, '/');
+				textures[2] = _INT atoi(lineptr) - 1;
+				ptrnextvalue(lineptr, '/');
+				normals[2] = _INT atoi(lineptr) - 1;
+
+				// push data of triangle
+				for (INT_T i = 0; i < 3; ++i) {
+					vertexIndexes.push_back(vertexes[i]);
+					textureIndexes.push_back(textures[i]);
+					normalIndexes.push_back(normals[i]);
+				}
+
+				size += 3;
+
+				spacePtr = strchr(lineptr, ' ');
+				// repeat if there are more values
+			} while (spacePtr != NULL && strpbrk(spacePtr, "0123456789.") < strchr(lineptr, '\n'));
+
+			//size += 3;
 			break;
 
 			// case for comment (unused)

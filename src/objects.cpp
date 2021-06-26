@@ -62,17 +62,17 @@ UINT_T Objects::newObject(const char* filePath, bool& status) {
 		// ambient on unit 0, diffuse on unit 1, specular on uint 2
 		if (obj.textureAmbient) {
 			mat.textureAmbient = true;
-			mat.ambientTextureHandle = textures.newTexture(obj.ambientTexturePath.c_str(), 0, status);
+			mat.ambientTextureHandle = textures.newTexture(obj.ambientTexturePath.c_str(), status);
 			if (!status) return 0;
 		}
 		if (obj.textureDiffuse) {
 			mat.textureDiffuse = true;
-			mat.diffuseTextureHandle = textures.newTexture(obj.diffuseTexturePath.c_str(), 1, status);
+			mat.diffuseTextureHandle = textures.newTexture(obj.diffuseTexturePath.c_str(), status);
 			if (!status) return 0;
 		}
 		if (obj.textureSpecular) {
 			mat.textureSpecular = true;
-			mat.specularTextureHandle = textures.newTexture(obj.specularTexturePath.c_str(), 2, status);
+			mat.specularTextureHandle = textures.newTexture(obj.specularTexturePath.c_str(), status);
 			if (!status) return 0;
 		}
 

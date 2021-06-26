@@ -18,7 +18,7 @@ public:
 	// Constructor takes paths to vertex shader and fragment shader
 	// in const char* type. A boolean variable passed to success will
 	// be updated to indicate weather the function has been successful.
-	Shader(const char* vertexShaderPath, const char* fragmentShaderPath, bool& success);
+	Shader(const char* vertexShaderPath, const char* fragmentShaderPath, bool& status);
 	
 	// destructor will delete shader program from GPU
 	~Shader();

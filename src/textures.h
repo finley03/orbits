@@ -14,10 +14,8 @@ private:
 public:
 	// Function to generate new texture
 	// must pass texture unit to bind texture to
-	uint32_t newTexture(const char* filePath, uint32_t textureUnit, bool& status);
+	uint32_t newTexture(const char* filePath, bool& status);
 
-	// set active texture unit
-	void active(uint32_t textureUnit);
 	// bind texture to texture unit
 	void bind(uint32_t textureHandle, uint32_t textureUnit);
 };

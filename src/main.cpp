@@ -49,12 +49,10 @@ int main() {
 	// non-zero value
 	if (!init()) return -1;
 
-	bool success;
-	/*UINT_T object1 = objects->newObject("../autopilotinterface/assets/cube2.obj", success);*/
-	UINT_T object1 = objects->newObject("../glTests/assets/MaleLow/MaleLow.obj", success);
-	float object1position[3] = { -2.0f, 0.0f, 0.0f };
-	objects->setPosition(object1, object1position);
-	//objects->newObject("../autopilotinterface/assets/cube2.obj", success);
+	//bool success;
+	//UINT_T object1 = objects->newObject("../glTests/assets/backpack/backpack.obj", success);
+	//float object1position[3] = { -2.0f, 0.0f, 0.0f };
+	//objects->setPosition(object1, object1position);
 
 	float position[3] = { -5.0f, 5.0f, 10.0f };
 	camera->setPosition(position);
@@ -68,9 +66,6 @@ int main() {
 		screen->clear();
 
 		UI(window);
-
-		//objects->render(object);
-		objects->renderAll();
 
 		screen->swap();
 		frameTimer->delay();
@@ -107,6 +102,8 @@ bool handleEvents() {
 				// case for window resize
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
 				screen->setViewport(event.window.data1, event.window.data2);
+				camera->setScreen(event.window.data1, event.window.data2);
+				camera->calculateProjectionMatrix();
 				width = event.window.data1;
 				height = event.window.data2;
 			}

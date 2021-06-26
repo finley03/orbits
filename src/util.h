@@ -42,7 +42,7 @@ typedef double FLT_T;
 #ifdef _ENV32
 typedef int32_t INT_T;
 typedef uint32_t UINT_T;
-typdef float FLT_T
+typedef float FLT_T;
 #endif
 
 #define _INT (INT_T)

@@ -25,7 +25,7 @@ bool Textures::colorSpace(int nrChannels, uint32_t& cSpaceMask) {
 }
 
 
-uint32_t Textures::newTexture(const char* filePath, uint32_t textureUnit, bool& status) {
+uint32_t Textures::newTexture(const char* filePath, bool& status) {
 	// load texture from file
 	int texWidth, texHeight, nrChannels;
 	uint32_t cSpace;
@@ -39,7 +39,7 @@ uint32_t Textures::newTexture(const char* filePath, uint32_t textureUnit, bool& 
 	}
 
 	// select active texture unit
-	glActiveTexture(GL_TEXTURE0 + textureUnit);
+	glActiveTexture(GL_TEXTURE0);
 
 	// texture handle writeback
 	uint32_t texture;
@@ -67,10 +67,6 @@ uint32_t Textures::newTexture(const char* filePath, uint32_t textureUnit, bool& 
 
 	status = true;
 	return texture;
-}
-
-void Textures::active(uint32_t textureUnit) {
-	glActiveTexture(GL_TEXTURE0 + textureUnit);
 }
 
 void Textures::bind(uint32_t textureHandle, uint32_t textureUnit) {

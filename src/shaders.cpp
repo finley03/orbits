@@ -5,9 +5,9 @@ constexpr uint16_t log_length = 512;
 
 
 // constructor
-Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath, bool& success) {
+Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath, bool& status) {
 	// initialize success to true before reset of function
-	success = true;
+	status = true;
 
 	// strings to read file contents into
 	std::string vertexShaderString, fragmentShaderString;
@@ -17,7 +17,7 @@ Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath, boo
 		!readFileToString(vertexShaderPath, vertexShaderString) ||
 		!readFileToString(fragmentShaderPath, fragmentShaderString))
 	{
-		success = false;
+		status = false;
 		return;
 	}
 
@@ -31,7 +31,7 @@ Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath, boo
 	// check objects were created
 	if (!vertexShader || !fragmentShader) {
 		std::cout << "Failed to create Shader objects\n";
-		success = false;
+		status = false;
 		goto clean;
 	}
 
@@ -56,19 +56,19 @@ Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath, boo
 		// get full error message
 		glGetShaderInfoLog(vertexShader, log_length, NULL, log);
 		std::cout << "Vertex shader compile failed:\n" << log << "\n";
-		success = false;
+		status = false;
 	}
 	if (!fragmentStatus) {
 		char log[log_length];
 		// get full error message
 		glGetShaderInfoLog(fragmentShader, log_length, NULL, log);
 		std::cout << "Fragment shader compile failed:\n" << log << "\n";
-		success = false;
+		status = false;
 	}
 
 	// once errors of both programs have been reported,
 	// return
-	if (!success) goto clean;
+	if (!status) goto clean;
 
 
 	// create shader program object
@@ -76,7 +76,7 @@ Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath, boo
 	// return if null
 	if (!shaderProgram) {
 		std::cout << "Failed to create Shader program object\n";
-		success = false;
+		status = false;
 		goto clean;
 	}
 
@@ -93,7 +93,7 @@ Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath, boo
 	if (!linkStatus) {
 		char log[log_length];
 		std::cout << "Shader program linking failed:\n" << log << "\n";
-		success = false;
+		status = false;
 		goto clean;
 	}
 

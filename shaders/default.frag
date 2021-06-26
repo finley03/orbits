@@ -6,12 +6,12 @@ in vec2 TexCoord;
 
 uniform vec3 color;
 uniform sampler2D texture0;
-uniform int textureDiffuse;
+uniform bool textureDiffuse;
 
 out vec4 FragColor;
 
 void main() {
-	if (textureDiffuse == 1) {
+	if (textureDiffuse) {
 		FragColor = texture(texture0, TexCoord);
 	}
 	else {
