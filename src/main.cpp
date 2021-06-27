@@ -49,10 +49,13 @@ int main() {
 	// non-zero value
 	if (!init()) return -1;
 
-	//bool success;
-	//UINT_T object1 = objects->newObject("../glTests/assets/backpack/backpack.obj", success);
-	//float object1position[3] = { -2.0f, 0.0f, 0.0f };
-	//objects->setPosition(object1, object1position);
+	//std::cout << "..\\autopilotinterface\\assets\\cube2.obj";
+
+	bool success;
+	UINT_T object1 = objects->newObject("C:/Users/Finley/code/autopilotinterface/assets/cube2.obj", success);
+	//UINT_T object1 = objects->newObject("..\\autopilotinterface\\assets\\cube2.obj", success);
+	float object1position[3] = { -2.0f, 0.0f, 0.0f };
+	objects->setPosition(object1, object1position);
 
 	float position[3] = { -5.0f, 5.0f, 10.0f };
 	camera->setPosition(position);
