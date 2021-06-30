@@ -11,13 +11,28 @@ private:
 	// for the given colorspace
 	bool colorSpace(int nrChannels, uint32_t& cSpaceMask);
 
+	// private attributes for exchange between
+	// multithreading functions
+	int texWidth, texHeight, nrChannels;
+	uint32_t cSpace;
 public:
 	// Function to generate new texture
 	// must pass texture unit to bind texture to
 	uint32_t newTexture(const char* filePath, bool& status);
 
+	// Texture loading function for use with multithreading
+	// can be called from any thread
+	bool loadTextureToBuffer(const char* filePath, uint8_t*& buffer);
+
+	// Texture generation function for use with multithreading
+	// must be called from primary OpenGL thread
+	uint32_t newTextureFromBuffer(uint8_t*& buffer, bool& status);
+
 	// bind texture to texture unit
 	void bind(uint32_t textureHandle, uint32_t textureUnit);
+
+	// delete a texture
+	void deleteTexture(uint32_t textureHandle);
 };
 
 #endif

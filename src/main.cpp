@@ -49,13 +49,18 @@ int main() {
 	// non-zero value
 	if (!init()) return -1;
 
-	//std::cout << "..\\autopilotinterface\\assets\\cube2.obj";
-
-	bool success;
-	UINT_T object1 = objects->newObject("C:/Users/Finley/code/autopilotinterface/assets/cube2.obj", success);
-	//UINT_T object1 = objects->newObject("..\\autopilotinterface\\assets\\cube2.obj", success);
-	float object1position[3] = { -2.0f, 0.0f, 0.0f };
-	objects->setPosition(object1, object1position);
+	//bool success;
+	//UINT_T object1 = objects->newObject("C:/Users/Finley/code/autopilotinterface/assets/cube2.obj", success);
+	////UINT_T object1 = objects->newObject("..\\autopilotinterface\\assets\\cube2.obj", success);
+	//float object1position[3] = { -2.0f, 0.0f, 0.0f };
+	//objects->setPosition(object1, object1position);
+	//objects->setName(object1, "test");
+	//UINT_T object2 = objects->newObject("C:/Users/Finley/code/autopilotinterface/assets/cube2.obj", success);
+	////UINT_T object1 = objects->newObject("..\\autopilotinterface\\assets\\cube2.obj", success);
+	//objects->setPosition(object2, object1position);
+	//objects->setName(object2, "test2");
+	////objects->deleteObject(object1);
+	//objects->deleteObject(object2);
 
 	float position[3] = { -5.0f, 5.0f, 10.0f };
 	camera->setPosition(position);
@@ -155,11 +160,7 @@ bool init() {
 		return false;
 	}
 
-	// enable antialising for window
-	// one multisample buffer
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	// 4 pixels compared in multisampling (might increase later)
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+	//SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 
 	// create the window
 	window = SDL_CreateWindow(
@@ -224,7 +225,9 @@ bool init() {
 
 	
 	// initialize global objects (on heap)
-	screen = new Screen(window);
+	bool screenStatus;
+	screen = new Screen(window, screenStatus);
+	if (!screenStatus) return false;
 	frameTimer = new Timer();
 	camera = new Camera();
 	bool objectStatus;

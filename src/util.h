@@ -22,6 +22,8 @@
 #include <map>
 #include <filesystem>
 #include <algorithm>
+#include <iterator>
+#include <thread>
 
 // bit depth checking
 #if _WIN64
@@ -110,6 +112,13 @@ bool readFileToString(T filePath, std::string& writeback) {
 	writeback = buffer.str();
 
 	return true;
+}
+
+
+// check if c++ indexable container type contains value
+template <typename T1, typename T2>
+bool contains(T1& container, T2 value) {
+	return std::find(container.begin(), container.end(), value) != container.end();
 }
 
 

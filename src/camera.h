@@ -39,9 +39,9 @@ private:
 	UINT_T width = 1000;
 	UINT_T height = 800;
 	// near distance of depth buffer
-	float nearDistance = 3.0f;
+	float nearDistance = 1.0f;
 	// far distance of frame buffer
-	float farDistance = 100.0f;
+	float farDistance = 1000000.0f;
 
 public:
 	// Setter for position attribute
