@@ -49,36 +49,25 @@ int main() {
 	// non-zero value
 	if (!init()) return -1;
 
-	//bool success;
-	//UINT_T object1 = objects->newObject("C:/Users/Finley/code/autopilotinterface/assets/cube2.obj", success);
-	////UINT_T object1 = objects->newObject("..\\autopilotinterface\\assets\\cube2.obj", success);
-	//float object1position[3] = { -2.0f, 0.0f, 0.0f };
-	//objects->setPosition(object1, object1position);
-	//objects->setName(object1, "test");
-	//UINT_T object2 = objects->newObject("C:/Users/Finley/code/autopilotinterface/assets/cube2.obj", success);
-	////UINT_T object1 = objects->newObject("..\\autopilotinterface\\assets\\cube2.obj", success);
-	//objects->setPosition(object2, object1position);
-	//objects->setName(object2, "test2");
-	////objects->deleteObject(object1);
-	//objects->deleteObject(object2);
-
-	float position[3] = { -5.0f, 5.0f, 10.0f };
-	camera->setPosition(position);
-	camera->calculateProjectionMatrix();
-	camera->calculateViewMatrix();
-
 	// main loop will continue to run if true
 	bool run = true;
 	while (run) {
+		// process all os events
 		run = handleEvents();
+		// clear screen for rendering
 		screen->clear();
 
+		// run user interface and render
+		// UI will also handle all objects
 		UI(window);
 
+		// swap renderbuffer to screen
 		screen->swap();
+		// wait delay to fill out frame
 		frameTimer->delay();
 	}
 
+	// shut down and deallocate all memory
 	shutdown();
 	return 0;
 }
@@ -160,8 +149,6 @@ bool init() {
 		return false;
 	}
 
-	//SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-
 	// create the window
 	window = SDL_CreateWindow(
 		// window title
@@ -225,14 +212,29 @@ bool init() {
 
 	
 	// initialize global objects (on heap)
-	bool screenStatus;
-	screen = new Screen(window, screenStatus);
-	if (!screenStatus) return false;
+
+	bool status;
+	// initialize screen buffers
+	screen = new Screen(window, status);
+	// check successful init
+	if (!status) return false;
+	// create frame timer
 	frameTimer = new Timer();
+	// create camera object
 	camera = new Camera();
-	bool objectStatus;
-	objects = new Objects(objectStatus);
-	if (!objectStatus) return false;
+	// create objects handling instance
+	objects = new Objects(status);
+	if (!status) return false;
+
+	// init camera to useful position
+	float position[3] = { 5.0f, 5.0f, 10.0f };
+	camera->setPosition(position);
+	camera->calculateProjectionMatrix();
+	camera->calculateViewMatrix();
+
+	// set details for the screen
+	screen->setViewport(width, height);
+	screen->setClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 
 	// set OpenGL flags for rendering
 
@@ -248,9 +250,6 @@ bool init() {
 	// enable blending
 	glEnable(GL_BLEND);
 
-	screen->setViewport(width, height);
-	screen->setClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-
 	// initialize imgui
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -262,6 +261,7 @@ bool init() {
 	ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
 	ImGui_ImplOpenGL3_Init();
 
+	UI_ConfigureStyle();
 
 	// if the function has reached this point, it's succeded
 	return true;
@@ -273,11 +273,14 @@ bool init() {
 // Should be called once at the end.
 void shutdown() {
 	// delete heap allocated objects
+	// delete will also call destructors
+	// for these objects
 	delete screen;
 	delete frameTimer;
 	delete camera;
 	delete objects;
 
+	// delete all contexts
 	SDL_GL_DeleteContext(gl_context);
 	SDL_DestroyWindow(window);
 	SDL_DestroyRenderer(renderer);

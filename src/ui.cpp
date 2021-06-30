@@ -7,6 +7,8 @@
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
 
+void UI_ConfigureStyle();
+
 // forward declarations of functions
 void UI_MenuBar(SDL_Window* window);
 void UI_ControlWindow(SDL_Window* window, bool* p_open);
@@ -36,18 +38,6 @@ void UI(SDL_Window* window) {
 	ImGui_ImplSDL2_NewFrame(window);
 	ImGui::NewFrame();
 
-	//ImGui::Begin("Test Window");
-
-	//ImGuiInputTextFlags inputflags =
-	//	ImGuiInputTextFlags_EnterReturnsTrue;
-
-	//static float frameCap = frameTimer->getRateCap();
-	//if (ImGui::InputFloat("Frame Cap", &frameCap, NULL, NULL, "%.1f", inputflags)) {
-	//	frameTimer->setRateCap(frameCap);
-	//}
-
-	//ImGui::End();
-
 	UI_MenuBar(window);
 
 	objects->renderAll();
@@ -55,6 +45,15 @@ void UI(SDL_Window* window) {
 	// render user interface
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+
+// procedure to configure style of UI
+void UI_ConfigureStyle() {
+	ImGuiStyle& style = ImGui::GetStyle();
+
+	style.Colors[ImGuiCol_Border] = ImVec4(0.2f, 0.2f, 0.17f, 0.5f);
+	style.Colors[ImGuiCol_Separator] = ImVec4(0.2f, 0.2f, 0.17f, 0.5f);
 }
 
 
@@ -104,7 +103,6 @@ void UI_MenuBar(SDL_Window* window) {
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("Debug##menubar")) {
-			//ImGui::MenuItem("FS##menubar", NULL, &showfs);
 			ImGui::MenuItem("ImGui Demo Window##menubar", NULL, &show_imgui_demo);
 			ImGui::EndMenu();
 		}
@@ -384,12 +382,9 @@ void UI_InputObjectsTab(SDL_Window* window) {
 		if (objects->getThreadDone()) {
 			UINT_T objectHandle = objects->joinThread(status);
 			if (status) {
-				//std::cout << "join\n";
-				//std::cout << objectPath << "\n";
 				std::filesystem::path path = objectPath;
 				std::string objectName = path.stem().string();
 				objects->setName(objectHandle, objectName);
-				//std::cout << objects->getName(objectHandle) << "\n";
 			}
 		}
 

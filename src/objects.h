@@ -22,72 +22,93 @@ extern Camera* camera;
 class Objects {
 private:
 	struct Material {
+		// colors for various reflection models
 		float ambient[3] = { 0.1f, 0.1f, 0.1f };
 		float diffuse[3] = { 0.4f, 0.4f, 0.4f };
 		float specular[3] = { 0.0f, 0.0f, 0.0f };
+		// opacity
 		float alpha = 1.0f;
 		float specularExponent = 32.0f;
+		// true if texture is used for reflection component
 		bool textureAmbient = false;
 		bool textureDiffuse = false;
 		bool textureSpecular = false;
+		// handle to texture object
 		uint32_t ambientTextureHandle;
 		uint32_t diffuseTextureHandle;
 		uint32_t specularTextureHandle;
 
+		// handle to shader (currently unused)
 		UINT_T shaderHandle;
 	};
 
 	struct ObjectData {
+		// data to describe positions of fredom for the object
 		float position[3] = { 0.0f, 0.0f ,0.0f };
 		float velocity[3] = { 0.0f, 0.0f, 0.0f };
 		float orientation[3] = { 0.0f, 0.0f, 0.0f };
+		// other parameters
 		float mass = 1.0f;
 		float scale = 1.0f;
-		float cRadius = 1.0f;
 
+		// true if object should be rendered
 		bool visible = true;
+		// false if object is mothballed to be reallocated
 		bool exists = true;
 
+		// number of vertices to render
 		UINT_T nrVertices;
 
+		// vertex buffer object for object
 		uint32_t VBO;
-		//std::vector<float> mesh;
+		// vector of materials used in the object
 		std::vector<Material> materials;
+		// vector of material indexes (describes how materials are linked to vertices)
 		std::vector<std::pair<UINT_T, UINT_T>> materialIndexes;
 
+		// visible name of object
 		std::string name;
 	};
 
+	// path to default shaders
 	const char* defaultVertexPath = "./shaders/default.vert";
 	const char* defaultFragmentPath = "./shaders/default.frag";
 	UINT_T defaultShaderHandle;
 
+	// global vertex attribute object
 	uint32_t VAO;
 
+	// vector of shaders (currently only contains default shaders)
 	std::vector<Shader*> shaders;
+	// vector of objects
 	std::vector<ObjectData> objects;
+	// vector of unused object indexes
 	std::vector<UINT_T> freeObjectIndexes;
 
+	// texture handler object
 	Textures textures;
-
-	UINT_T iteratorObjectHandle;
-	bool iteratorEnd;
 
 	// private attributes for multithreading
 
 	std::thread objectThread;
 	bool threadOpen = false;
-	bool threadDone = false;;
+	bool threadDone = false;
+	// stores handle to object created on thread
 	UINT_T threadObjectHandle;
+	// data for object loaded on thread
 	OBJ_Data objdata;
+	// size of object
 	UINT_T size;
 	bool status;
 
+	// pointer to texture buffers for use on thread
 	uint8_t* ambientBuffer;
 	uint8_t* diffuseBuffer;
 	uint8_t* specularBuffer;
 public:
+	// constructor
 	Objects(bool& status);
+	// destructor
 	~Objects();
 
 	// create new object from .obj file
@@ -103,14 +124,17 @@ public:
 	// join thread
 	UINT_T joinThread(bool& status);
 
+	// removes object, deallocates memory
 	void deleteObject(UINT_T objectHandle);
 
+	// setters for various attributes
 	void setPosition(UINT_T objectHandle, float* position);
 	void setOrientation(UINT_T objectHandle, float* orientation);
 	void setScale(UINT_T objectHandle, float scale);
 	void setName(UINT_T objectHandle, std::string name);
 	void setVisible(UINT_T objectHandle, bool visible);
 
+	// getters for various attributes
 	void getPosition(UINT_T objectHandle, float* writeback);
 	void getOrientation(UINT_T objectHandle, float* writeback);
 	float getScale(UINT_T objectHandle);
@@ -118,39 +142,37 @@ public:
 	std::string getName(UINT_T objectHandle);
 	bool getVisible(UINT_T objectHandle);
 
+	// Procedure to render an object based on its handle
 	void render(UINT_T objectHandle);
+	// Procedure to render all objects
 	void renderAll();
 
-	//typedef typename UINT_T iterator;
-	// 
+	// iterator to iterate through objects
+	// forward iterator only
 	class iterator {
 	private:
 	public:
+		// pointer (this) to parent object
 		Objects* parent;
+		// handle to object
 		UINT_T n = 0;
 
+		// overloaded operators for forward iteration
 		iterator& operator++();
 		iterator operator++(int);
 
-		iterator& operator--();
-		iterator operator--(int);
-
+		// comparison operators
 		bool operator==(const iterator& i2);
 		bool operator!=(const iterator& i2);
+		bool operator<(const iterator& i2);
 
-		//UINT_T& operator=(const iterator& i2);
+		// dereference operator to get object handle
 		UINT_T& operator*();
 	};
-	// 
-	// public functions to iterate through objects
+
+	// public functions to get iterators
 	iterator begin();
 	iterator end();
-	//void next(UINT_T& objectHandle);
-	//// prefix operator overload
-	//iterator& operator++();
-	//iterator operator++(int);
-
-	//struct ObjectData;
 };
 
 #endif

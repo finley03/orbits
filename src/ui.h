@@ -8,4 +8,6 @@
 
 void UI(SDL_Window* window);
 
+void UI_ConfigureStyle();
+
 #endif

@@ -24,7 +24,7 @@ Objects::~Objects() {
 		delete shaders[i];
 	}
 
-	for (auto it = this->begin(); it != this->end(); ++it) {
+	for (auto it = this->begin(); it < this->end(); ++it) {
 		deleteObject(*it);
 	}
 }
@@ -424,37 +424,16 @@ Objects::iterator Objects::iterator::operator++(int) {
 	return temp;
 }
 
-Objects::iterator& Objects::iterator::operator--() {
-	INT_T i;
-	for (i = this->n - 1; i >= 0; --i) {
-		if (parent->objects[i].exists) {
-			this->n = i;
-			break;
-		}
-	}
-	if (this->n != i)--this->n;
-	return *this;
-}
-
-Objects::iterator Objects::iterator::operator--(int) {
-	iterator temp = *this;
-	INT_T i;
-	for (i = this->n - 1; i >= 0; --i) {
-		if (parent->objects[i].exists) {
-			this->n = i;
-			break;
-		}
-	}
-	if (this->n != i)--this->n;
-	return temp;
-}
-
 bool Objects::iterator::operator==(const Objects::iterator& i2) {
 	return (this->n == i2.n);
 }
 
 bool Objects::iterator::operator!=(const Objects::iterator& i2) {
 	return (this->n != i2.n);
+}
+
+bool Objects::iterator::operator<(const Objects::iterator& i2) {
+	return (this->n < i2.n);
 }
 
 UINT_T& Objects::iterator::operator*() {
