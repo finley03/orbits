@@ -1,14 +1,25 @@
 // source file for time class
 
 #include "time.h"
-#include <SDL.h>
 
 void Timer::start() {
-	startTime = clock::now();
+	if (paused) resume();
+	else startTime = clock::now();
 }
 
 void Timer::reset() {
 	startTime = {};
+	paused = false;
+}
+
+void Timer::pause() {
+	pauseTime = clock::now();
+	paused = true;
+}
+
+void Timer::resume() {
+	startTime += clock::now() - pauseTime;
+	paused = false;
 }
 
 void Timer::setRateCap(float cap) {
@@ -42,8 +53,8 @@ void Timer::delay() {
 	// if enlapsed time is less than target time
 	// call delay function
 	if (enlapsedTime < 1000.0f / rateCap) {
-		SDL_Delay(static_cast<uint32_t>((1000.0f / rateCap) - enlapsedTime));
+		//SDL_Delay(static_cast<uint32_t>((1000.0f / rateCap) - enlapsedTime));
+		std::this_thread::sleep_for(std::chrono::microseconds(static_cast<uint32_t>((1.0E6f / rateCap) - enlapsedTime * 1000 - 1000)));
 	}
-	reset();
 	start();
 }

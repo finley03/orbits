@@ -11,19 +11,19 @@
 
 #include "util.h"
 
-// includes important for all files
-
-#include "screen.h"
-#include "shaders.h"
-#include "camera.h"
-#include "objects.h"
-#include "time.h"
-
-// external declarations of global object pointers
-
-extern Screen* screen;
-extern Timer* frameTimer;
-extern Camera* camera;
-extern Objects* objects;
+//// includes important for all files
+//
+//#include "screen.h"
+//#include "shaders.h"
+//#include "camera.h"
+//#include "objects.h"
+//#include "time.h"
+//
+//// external declarations of global object pointers
+//
+//extern Screen* screen;
+//extern Timer* frameTimer;
+//extern Camera* camera;
+//extern Objects* objects;
 
 #endif

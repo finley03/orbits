@@ -1,20 +1,14 @@
 // main source file for program
 // meant to contain minimal functions, only main() and init()
 
-// SDL is used for window management and all
-// that nasty platform specific stuff
-#include <SDL.h>
-#undef main // must undefine main defined in SDL.h
-// to avoid linker errors
-#include <glad/glad.h>
-
-#include "imgui.h"
-#include "imgui_impl_sdl.h"
-#include "imgui_impl_opengl3.h"
-
 #include "main.h"
 #include "ui.h"
 #include "obj.h"
+#include "screen.h"
+#include "time.h"
+//#include "camera.h"
+//#include "objects.h"
+#include "simulation.h"
 
 // defined constants for main file
 
@@ -33,8 +27,10 @@ SDL_GLContext gl_context;
 
 Screen* screen;
 Timer* frameTimer;
-Camera* camera;
-Objects* objects;
+std::vector<Simulation*> simulations;
+extern INT_T activeSimulation;
+//Camera* camera;
+//Objects* objects;
 
 // forward definitions of main functions
 
@@ -80,6 +76,7 @@ bool handleEvents() {
 	bool run = true;
 
 	static ImGuiIO& io = ImGui::GetIO();
+	Simulation& simulation = *simulations[activeSimulation];
 
 	// handle OS events
 	while (SDL_PollEvent(&event)) {
@@ -99,8 +96,8 @@ bool handleEvents() {
 				// case for window resize
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
 				screen->setViewport(event.window.data1, event.window.data2);
-				camera->setScreen(event.window.data1, event.window.data2);
-				camera->calculateProjectionMatrix();
+				simulation.camera.setScreen(event.window.data1, event.window.data2);
+				simulation.camera.calculateProjectionMatrix();
 				width = event.window.data1;
 				height = event.window.data2;
 			}
@@ -111,13 +108,13 @@ bool handleEvents() {
 			// case for middle mouse button (revolve)
 			// only revolve if mouse is not over GUI window
 			if (event.motion.state & SDL_BUTTON_MMASK && !io.WantCaptureMouse) {
-				camera->mouseRevolve(event.motion.xrel, event.motion.yrel);
-				camera->calculateViewMatrix();
+				simulation.camera.mouseRevolve(event.motion.xrel, event.motion.yrel);
+				simulation.camera.calculateViewMatrix();
 			}
 			// case for right mouse button (translate on plane)
 			if (event.motion.state & SDL_BUTTON_RMASK && !io.WantCaptureMouse) {
-				camera->mouseTranslate(event.motion.xrel, event.motion.yrel);
-				camera->calculateViewMatrix();
+				simulation.camera.mouseTranslate(event.motion.xrel, event.motion.yrel);
+				simulation.camera.calculateViewMatrix();
 			}
 			break;
 
@@ -125,8 +122,8 @@ bool handleEvents() {
 		case SDL_MOUSEWHEEL:
 			// check GUI window is not focused
 			if (!io.WantCaptureMouse) {
-				camera->mouseZoom(event.wheel.y);
-				camera->calculateViewMatrix();
+				simulation.camera.mouseZoom(event.wheel.y);
+				simulation.camera.calculateViewMatrix();
 			}
 			break;
 		}
@@ -220,17 +217,20 @@ bool init() {
 	if (!status) return false;
 	// create frame timer
 	frameTimer = new Timer();
-	// create camera object
-	camera = new Camera();
-	// create objects handling instance
-	objects = new Objects(status);
-	if (!status) return false;
+	//// create camera object
+	//camera = new Camera();
+	//// create objects handling instance
+	//objects = new Objects(status);
+	//if (!status) return false;
+	simulations.push_back(new Simulation());
+	simulations[activeSimulation]->reportProgramFrameRate(frameTimer->getRateCap());
+	//simulations[activeSimulation]->startRunThread();
 
-	// init camera to useful position
-	float position[3] = { 5.0f, 5.0f, 10.0f };
-	camera->setPosition(position);
-	camera->calculateProjectionMatrix();
-	camera->calculateViewMatrix();
+	//// init camera to useful position
+	//float position[3] = { 5.0f, 5.0f, 10.0f };
+	//camera->setPosition(position);
+	//camera->calculateProjectionMatrix();
+	//camera->calculateViewMatrix();
 
 	// set details for the screen
 	screen->setViewport(width, height);
@@ -277,8 +277,9 @@ void shutdown() {
 	// for these objects
 	delete screen;
 	delete frameTimer;
-	delete camera;
-	delete objects;
+	for (auto it = simulations.begin(); it != simulations.end(); ++it) delete *it;
+	//delete camera;
+	//delete objects;
 
 	// delete all contexts
 	SDL_GL_DeleteContext(gl_context);

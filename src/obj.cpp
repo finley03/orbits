@@ -194,18 +194,18 @@ OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, bool& status) {
 			UINT_T vertexes[3], textures[3], normals[3];
 			// get first values
 			ptrnextvalue(lineptr);
-			vertexes[0] = _INT atoi(lineptr) - 1;
+			vertexes[0] = _INT(atoi(lineptr)) - 1;
 			ptrnextvalue(lineptr, '/');
-			textures[0] = _INT atoi(lineptr) - 1;
+			textures[0] = _INT(atoi(lineptr)) - 1;
 			ptrnextvalue(lineptr, '/');
-			normals[0] = _INT atoi(lineptr) - 1;
+			normals[0] = _INT(atoi(lineptr)) - 1;
 			// get second values
 			ptrnextvalue(lineptr);
-			vertexes[1] = _INT atoi(lineptr) - 1;
+			vertexes[1] = _INT(atoi(lineptr)) - 1;
 			ptrnextvalue(lineptr, '/');
-			textures[1] = _INT atoi(lineptr) - 1;
+			textures[1] = _INT(atoi(lineptr)) - 1;
 			ptrnextvalue(lineptr, '/');
-			normals[1] = _INT atoi(lineptr) - 1;
+			normals[1] = _INT(atoi(lineptr)) - 1;
 
 			const char* spacePtr;
 
@@ -224,11 +224,11 @@ OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, bool& status) {
 
 				// get third values
 				ptrnextvalue(lineptr);
-				vertexes[2] = _INT atoi(lineptr) - 1;
+				vertexes[2] = _INT(atoi(lineptr)) - 1;
 				ptrnextvalue(lineptr, '/');
-				textures[2] = _INT atoi(lineptr) - 1;
+				textures[2] = _INT(atoi(lineptr)) - 1;
 				ptrnextvalue(lineptr, '/');
-				normals[2] = _INT atoi(lineptr) - 1;
+				normals[2] = _INT(atoi(lineptr)) - 1;
 
 				// push data of triangle
 				for (INT_T i = 0; i < 3; ++i) {

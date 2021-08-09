@@ -23,7 +23,26 @@
 #include <filesystem>
 #include <algorithm>
 #include <iterator>
-#include <thread>
+//#include <thread>
+
+// SDL is used for window management and all
+// that nasty platform specific stuff
+#include <SDL.h>
+#undef main // must undefine main defined in SDL.h
+// to avoid linker errors
+#include <glad/glad.h>
+
+#include "imgui.h"
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_opengl3.h"
+
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#ifdef _MSC_VER
+#pragma warning (disable: 4996)
+#endif
 
 // bit depth checking
 #if _WIN64
@@ -41,36 +60,52 @@
 typedef int64_t INT_T;
 typedef uint64_t UINT_T;
 typedef double FLT_T;
+#define INT_T_MAX INT64_MAX
+#define UINT_T_MAX UINT64_MAX
+#define INT_T_MIN INT64_MIN
+#define UINT_T_MIN UINT64_MIN
 #endif
 
 #ifdef _ENV32
 typedef int32_t INT_T;
 typedef uint32_t UINT_T;
 typedef float FLT_T;
+#define INT_T_MAX INT32_MAX
+#define UINT_T_MAX UINT32_MAX
+#define INT_T_MIN INT32_MIN
+#define UINT_T_MIN UINT32_MIN
 #endif
 
-#define _INT (INT_T)
-#define _UINT (UINT_T)
+#define _INT(a) static_cast<INT_T>(a)
+#define _UINT(a) static_cast<UINT_T>(a)
 
 // some fixed width casting macros
-#define _I32 (int32_t)
-#define _U32 (uint32_t)
-#define _F32 (float)
-#define _I64 (int64_t)
-#define _U64 (uint64_t)
-#define _F64 (double)
+#define _I32(a) static_cast<int32_t>(a)
+#define _U32(a) static_cast<uint32_t>(a)
+#define _F32(a) static_cast<float>(a)
+#define _I64(a) static_cast<int64_t>(a)
+#define _U64(a) static_cast<uint64_t>(a)
+#define _F64(a) static_cast<double>(a)
 
 // define some comparison macros
 
-#define ABS(a) ((a < 0) ? -a : a)
+#define ABS(a) ((a < 0) ? -(a) : a)
 #define MAX_2(a, b) ((a > b) ? a : b)
-#define MIN_2(a, b) ((b > a) ? a : b);
+#define MIN_2(a, b) ((b > a) ? a : b)
 #define MAX_3(a, b, c) (MAX_2(MAX_2(a, b), c))
 #define MIN_3(a, b, c) (MIN_2(MIN_2(a, b), c))
 #define UMAX_2(a, b) MAX_2(ABS(a), ABS(b))
 #define UMIN_2(a, b) MIN_2(ABS(a), ABS(b))
 #define UMAX_3(a, b, c) MAX_3(ABS(a), ABS(b), ABS(c))
 #define UMIN_3(a, b, c) MIN_3(ABS(a), ABS(b), ABS(c))
+
+#define ARRLEN(a) (sizeof(a)/sizeof(a[0]))
+#define STRLEN(s) (ARRLEN(s)-1)
+
+
+// constants
+constexpr float GRAVITATION_CONSTANT = 6.6743015E-11;
+
 
 // Type for color
 typedef struct {

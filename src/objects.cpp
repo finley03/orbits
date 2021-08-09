@@ -2,8 +2,16 @@
 
 #include "objects.h"
 //#include "obj.h"
+#include "simulation.h"
+extern "C" {
+#include "mat.h"
+}
 
-Objects::Objects(bool& status) : textures() {// , shader(defaultVertexPath, defaultFragmentPath, status) {
+//extern std::vector<Simulation*> simulations;
+//extern INT_T activeSimulation;
+
+Objects::Objects(void* parent, bool& status) : textures() {// , shader(defaultVertexPath, defaultFragmentPath, status) {
+	simulationptr = parent;
 	// shader vector is empty therefore default handle is zero
 	defaultShaderHandle = shaders.size();
 	// create default shader
@@ -32,8 +40,8 @@ Objects::~Objects() {
 
 UINT_T Objects::newObject(const char* filePath, bool& status) {
 	// get data from file
-	UINT_T size;
-	OBJ_Data objdata = OBJ_GenMesh(filePath, size, status);
+	UINT_T sizeVertices;
+	OBJ_Data objdata = OBJ_GenMesh(filePath, sizeVertices, status);
 	// check obj file loading succedded
 	if (!status) return 0;
 
@@ -86,7 +94,8 @@ UINT_T Objects::newObject(const char* filePath, bool& status) {
 	// transfer material index data
 	data.materialIndexes = objdata.matIndexes;
 
-	data.nrVertices = size;
+	data.nrVertices = sizeVertices;
+	data.cRadius = cRadius;
 
 	data.exists = true;
 
@@ -110,7 +119,7 @@ UINT_T Objects::newObject(const char* filePath, bool& status) {
 void Objects::newObjectT(const char* filePath) {
 	threadOpen = true;
 	// get data from file
-	objdata = OBJ_GenMesh(filePath, size, status);
+	objdata = OBJ_GenMesh(filePath, sizeVertices, status);
 	// check obj file loading succedded
 
 	// transfer material data
@@ -217,7 +226,8 @@ UINT_T Objects::joinThread(bool& status) {
 		// transfer material index data
 		data.materialIndexes = objdata.matIndexes;
 
-		data.nrVertices = size;
+		data.nrVertices = sizeVertices;
+		data.cRadius = cRadius;
 
 		data.exists = true;
 
@@ -291,6 +301,16 @@ void Objects::setVisible(UINT_T objectHandle, bool visible) {
 	objects[objectHandle].visible = visible;
 }
 
+void Objects::setMass(UINT_T objectHandle, float mass) {
+	objects[objectHandle].mass = mass;
+}
+
+void Objects::setVelocity(UINT_T objectHandle, float* velocity) {
+	for (INT_T i = 0; i < 3; ++i) {
+		objects[objectHandle].velocity[i] = velocity[i];
+	}
+}
+
 
 void Objects::getPosition(UINT_T objectHandle, float* writeback) {
 	for (INT_T i = 0; i < 3; ++i) {
@@ -320,8 +340,24 @@ bool Objects::getVisible(UINT_T objectHandle) {
 	return objects[objectHandle].visible;
 }
 
+float Objects::getMass(UINT_T objectHandle) {
+	return objects[objectHandle].mass;
+}
+
+void Objects::getVelocity(UINT_T objectHandle, float* writeback) {
+	for (INT_T i = 0; i < 3; ++i) {
+		writeback[i] = objects[objectHandle].velocity[i];
+	}
+}
+
+float Objects::getRadius(UINT_T objectHandle) {
+	return objects[objectHandle].cRadius * objects[objectHandle].scale;
+}
+
 
 void Objects::render(UINT_T objectHandle) {
+	//Simulation& simulation = *simulations[activeSimulation];
+	Simulation& simulation = *(Simulation*)simulationptr;
 	// create alias for object
 	ObjectData& object = objects[objectHandle];
 	Shader& shader = *shaders[defaultShaderHandle];
@@ -338,8 +374,8 @@ void Objects::render(UINT_T objectHandle) {
 	float& scale = object.scale;
 	model = glm::scale(model, glm::vec3(scale, scale, scale));
 
-	glm::mat4 view = camera->getViewMatrix();
-	glm::mat4 projection = camera->getProjectionMatrix();
+	glm::mat4 view = simulation.camera.getViewMatrix();
+	glm::mat4 projection = simulation.camera.getProjectionMatrix();
 
 	shader.setMat4("model", glm::value_ptr(model));
 	shader.setMat4("view", glm::value_ptr(view));
@@ -462,9 +498,15 @@ Objects::iterator Objects::end() {
 	//it.n = objects.size() - 1;
 	for (INT_T n = objects.size() - 1; n >= 0; --n) {
 		if (objects[n].exists) {
-			it.n = _UINT n + 1;
+			it.n = _UINT(n) + 1;
 			break;
 		}
 	}
 	return it;
+}
+
+size_t Objects::size() {
+	size_t count = 0;
+	for (auto it = this->begin(); it != this->end(); ++it) ++count;
+	return count;
 }

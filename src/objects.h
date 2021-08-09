@@ -5,22 +5,21 @@
 #ifndef OBJECTS_H
 #define OBJECTS_H
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "util.h"
 #include "textures.h"
 #include "shaders.h"
-#include "camera.h"
+//#include "camera.h"
 #include "obj.h"
 
 
 // extern camera pointer declaration
-extern Camera* camera;
+//extern Camera* camera;
 
 class Objects {
 private:
+	// void pointer because can't circularly include simulation.h
+	void* simulationptr;
+
 	struct Material {
 		// colors for various reflection models
 		float ambient[3] = { 0.1f, 0.1f, 0.1f };
@@ -48,8 +47,11 @@ private:
 		float velocity[3] = { 0.0f, 0.0f, 0.0f };
 		float orientation[3] = { 0.0f, 0.0f, 0.0f };
 		// other parameters
-		float mass = 1.0f;
+		float mass = 1000.0f;
 		float scale = 1.0f;
+
+		// characteristic radius of object
+		float cRadius = 1.0f;
 
 		// true if object should be rendered
 		bool visible = true;
@@ -98,8 +100,9 @@ private:
 	// data for object loaded on thread
 	OBJ_Data objdata;
 	// size of object
-	UINT_T size;
+	UINT_T sizeVertices;
 	bool status;
+	float cRadius;
 
 	// pointer to texture buffers for use on thread
 	uint8_t* ambientBuffer;
@@ -107,7 +110,7 @@ private:
 	uint8_t* specularBuffer;
 public:
 	// constructor
-	Objects(bool& status);
+	Objects(void* parent, bool& status);
 	// destructor
 	~Objects();
 
@@ -133,6 +136,8 @@ public:
 	void setScale(UINT_T objectHandle, float scale);
 	void setName(UINT_T objectHandle, std::string name);
 	void setVisible(UINT_T objectHandle, bool visible);
+	void setMass(UINT_T objectHandle, float mass);
+	void setVelocity(UINT_T objectHandle, float* velocity);
 
 	// getters for various attributes
 	void getPosition(UINT_T objectHandle, float* writeback);
@@ -141,6 +146,9 @@ public:
 	UINT_T getSize(UINT_T objectHandle);
 	std::string getName(UINT_T objectHandle);
 	bool getVisible(UINT_T objectHandle);
+	float getMass(UINT_T objectHandle);
+	void getVelocity(UINT_T objectHandle, float* writeback);
+	float getRadius(UINT_T objectHandle);
 
 	// Procedure to render an object based on its handle
 	void render(UINT_T objectHandle);
@@ -173,6 +181,8 @@ public:
 	// public functions to get iterators
 	iterator begin();
 	iterator end();
+
+	size_t size();
 };
 
 #endif

@@ -4,7 +4,7 @@
 #ifndef UI_H
 #define UI_H
 
-#include <SDL.h>
+#include "util.h"
 
 void UI(SDL_Window* window);
 

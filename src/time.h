@@ -10,6 +10,9 @@ private:
 	using clock = std::chrono::steady_clock;
 
 	clock::time_point startTime = {};
+	clock::time_point pauseTime = {};
+
+	bool paused = false;
 
 	float rateCap = 30;
 
@@ -20,6 +23,10 @@ public:
 	void start();
 	// initializes start time.
 	void reset();
+	// pause timer;
+	void pause();
+	// resume timer;
+	void resume();
 
 	// Returns enlapsed time since timer start.
 	float getEnlapsed();
