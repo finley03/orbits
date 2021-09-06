@@ -7,6 +7,9 @@ extern "C" {
 #include "mat.h"
 }
 
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#include "stb_image_write.h"
+
 //extern std::vector<Simulation*> simulations;
 //extern INT_T activeSimulation;
 
@@ -41,9 +44,31 @@ Objects::~Objects() {
 UINT_T Objects::newObject(const char* filePath, bool& status) {
 	// get data from file
 	UINT_T sizeVertices;
-	OBJ_Data objdata = OBJ_GenMesh(filePath, sizeVertices, status);
+	OBJ_Data objdata;
+	std::string extension = std::filesystem::path(filePath).extension().string();
+	if (extension == ".obj") objdata = OBJ_GenMesh(filePath, sizeVertices, textures, status);
+	else if (extension == ".glb") objdata = GLB_GenMesh(filePath, sizeVertices, textures, status);
+	else {
+		std::cout << "unsupported file extension" << "\n";
+		status = false;
+		return 0;
+	}
 	// check obj file loading succedded
 	if (!status) return 0;
+
+	// find cRadius (crude calculation)
+	float center[3];
+	for (UINT_T i = 0; i < sizeVertices; ++i) {
+		mat_add(center, &objdata.mesh[i * 8], 3, center);
+	}
+	mat_scalar_product(center, 1 / sizeVertices, 3, center);
+	// calculate average distance to points
+	for (UINT_T i = 0; i < sizeVertices; ++i) {
+		float center_point_vector[3];
+		mat_subtract(&objdata.mesh[i * 8], center, 3, center_point_vector);
+		cRadius += vec_3_length(center_point_vector);
+	}
+	cRadius /= sizeVertices;
 
 	// construct object data
 	ObjectData data;
@@ -74,17 +99,20 @@ UINT_T Objects::newObject(const char* filePath, bool& status) {
 		// ambient on unit 0, diffuse on unit 1, specular on uint 2
 		if (obj.textureAmbient) {
 			mat.textureAmbient = true;
-			mat.ambientTextureHandle = textures.newTexture(obj.ambientTexturePath.c_str(), status);
+			//mat.ambientTextureHandle = textures.newTexture(obj.ambientTexturePath.c_str(), status);
+			mat.ambientTextureHandle = textures.newTextureFromBuffer(obj.ambientTexturePointer, status);
 			if (!status) return 0;
 		}
 		if (obj.textureDiffuse) {
 			mat.textureDiffuse = true;
-			mat.diffuseTextureHandle = textures.newTexture(obj.diffuseTexturePath.c_str(), status);
+			//mat.diffuseTextureHandle = textures.newTexture(obj.diffuseTexturePath.c_str(), status);
+			mat.diffuseTextureHandle = textures.newTextureFromBuffer(obj.diffuseTexturePointer, status);
 			if (!status) return 0;
 		}
 		if (obj.textureSpecular) {
 			mat.textureSpecular = true;
-			mat.specularTextureHandle = textures.newTexture(obj.specularTexturePath.c_str(), status);
+			//mat.specularTextureHandle = textures.newTexture(obj.specularTexturePath.c_str(), status);
+			mat.specularTextureHandle = textures.newTextureFromBuffer(obj.specularTexturePointer, status);
 			if (!status) return 0;
 		}
 
@@ -98,6 +126,8 @@ UINT_T Objects::newObject(const char* filePath, bool& status) {
 	data.cRadius = cRadius;
 
 	data.exists = true;
+
+	data.scale = targetRadius / data.cRadius;
 
 	// get object index
 	UINT_T objectHandle = objects.size();
@@ -119,33 +149,59 @@ UINT_T Objects::newObject(const char* filePath, bool& status) {
 void Objects::newObjectT(const char* filePath) {
 	threadOpen = true;
 	// get data from file
-	objdata = OBJ_GenMesh(filePath, sizeVertices, status);
+	//OBJ_Data objdata;
+	std::string extension = std::filesystem::path(filePath).extension().string();
+	if (extension == ".obj") objdata = OBJ_GenMesh(filePath, sizeVertices, textures, status);
+	else if (extension == ".glb") objdata = GLB_GenMesh(filePath, sizeVertices, textures, status);
+	else {
+		std::cout << "unsupported file extension" << "\n";
+		status = false;
+	}
 	// check obj file loading succedded
 
-	// transfer material data
-	for (INT_T i = 0; i < objdata.materials.size(); ++i) {
-		// create alias for object data
-		OBJ_Material& obj = objdata.materials[i];
+	std::cout << sizeVertices << "\n";
 
-		// create textures if applicable
-		// ambient on unit 0, diffuse on unit 1, specular on uint 2
-		if (obj.textureAmbient) {
-			//mat.ambientTextureHandle = textures.newTexture(obj.ambientTexturePath.c_str(), status);
-			status = textures.loadTextureToBuffer(obj.ambientTexturePath.c_str(), ambientBuffer);
-			//if (!status) return 0;
-		}
-		if (obj.textureDiffuse) {
-			//mat.diffuseTextureHandle = textures.newTexture(obj.diffuseTexturePath.c_str(), status);
-			status = textures.loadTextureToBuffer(obj.diffuseTexturePath.c_str(), diffuseBuffer);
-			//if (!status) return 0;
-		}
-		if (obj.textureSpecular) {
-			//mat.specularTextureHandle = textures.newTexture(obj.specularTexturePath.c_str(), status);
-			status = textures.loadTextureToBuffer(obj.specularTexturePath.c_str(), specularBuffer);
-			//if (!status) return 0;
-		}
+	// find cRadius (crude calculation)
+	float center[3];
+	for (UINT_T i = 0; i < sizeVertices; ++i) {
+		mat_add(center, &objdata.mesh[i * 8], 3, center);
 	}
+	mat_scalar_product(center, 1 / sizeVertices, 3, center);
+	// calculate average distance to points
+	for (UINT_T i = 0; i < sizeVertices; ++i) {
+		float center_point_vector[3];
+		mat_subtract(&objdata.mesh[i * 8], center, 3, center_point_vector);
+		cRadius += vec_3_length(center_point_vector);
+	}
+	cRadius /= sizeVertices;
 
+
+
+	//stbi_write_png("./assets/EarthCloudsTex.png", 4096, 3072, 3, objdata.materials[0].diffuseTexturePointer, 4 * 4096);
+
+	//// transfer material data
+	//for (INT_T i = 0; i < objdata.materials.size(); ++i) {
+	//	// create alias for object data
+	//	OBJ_Material& obj = objdata.materials[i];
+
+	//	// create textures if applicable
+	//	// ambient on unit 0, diffuse on unit 1, specular on uint 2
+	//	if (obj.textureAmbient) {
+	//		//mat.ambientTextureHandle = textures.newTexture(obj.ambientTexturePath.c_str(), status);
+	//		status = textures.loadImageToBuffer(obj.ambientTexturePath.c_str(), ambientBuffer);
+	//		//if (!status) return 0;
+	//	}
+	//	if (obj.textureDiffuse) {
+	//		//mat.diffuseTextureHandle = textures.newTexture(obj.diffuseTexturePath.c_str(), status);
+	//		status = textures.loadImageToBuffer(obj.diffuseTexturePath.c_str(), diffuseBuffer);
+	//		//if (!status) return 0;
+	//	}
+	//	if (obj.textureSpecular) {
+	//		//mat.specularTextureHandle = textures.newTexture(obj.specularTexturePath.c_str(), status);
+	//		status = textures.loadImageToBuffer(obj.specularTexturePath.c_str(), specularBuffer);
+	//		//if (!status) return 0;
+	//	}
+	//}
 
 	threadDone = true;
 
@@ -173,6 +229,7 @@ UINT_T Objects::joinThread(bool& status) {
 		objectThread.join();
 		threadDone = false;
 
+		std::cout << "test2\n";
 
 		// construct object data
 		ObjectData data;
@@ -180,8 +237,11 @@ UINT_T Objects::joinThread(bool& status) {
 		glGenBuffers(1, &data.VBO);
 		// buffer data to GPU
 		glBindBuffer(GL_ARRAY_BUFFER, data.VBO);
+		std::cout << objdata.mesh.size() << "\n";
 		// pass size of mesh and position of first value
 		glBufferData(GL_ARRAY_BUFFER, objdata.mesh.size() * sizeof(float), &objdata.mesh[0], GL_STATIC_DRAW);
+
+		std::cout << "test3\n";
 
 		// transfer material data
 		for (INT_T i = 0; i < objdata.materials.size(); ++i) {
@@ -204,24 +264,27 @@ UINT_T Objects::joinThread(bool& status) {
 			if (obj.textureAmbient) {
 				mat.textureAmbient = true;
 				//mat.ambientTextureHandle = textures.newTexture(obj.ambientTexturePath.c_str(), status);
-				mat.ambientTextureHandle = textures.newTextureFromBuffer(ambientBuffer, status);
+				mat.ambientTextureHandle = textures.newTextureFromBuffer(obj.ambientTexturePointer, status);
 				//if (!status) return 0;
 			}
 			if (obj.textureDiffuse) {
 				mat.textureDiffuse = true;
 				//mat.diffuseTextureHandle = textures.newTexture(obj.diffuseTexturePath.c_str(), status);
-				mat.diffuseTextureHandle = textures.newTextureFromBuffer(diffuseBuffer, status);
+				mat.diffuseTextureHandle = textures.newTextureFromBuffer(obj.diffuseTexturePointer, status);
+				printf("%s\n", status ? "success" : "fail");
 				//if (!status) return 0;
 			}
 			if (obj.textureSpecular) {
 				mat.textureSpecular = true;
 				//mat.specularTextureHandle = textures.newTexture(obj.specularTexturePath.c_str(), status);
-				mat.specularTextureHandle = textures.newTextureFromBuffer(specularBuffer, status);
+				mat.specularTextureHandle = textures.newTextureFromBuffer(obj.specularTexturePointer, status);
 				//if (!status) return 0;
 			}
 
 			data.materials.push_back(mat);
 		}
+
+		std::cout << "test4\n";
 
 		// transfer material index data
 		data.materialIndexes = objdata.matIndexes;
@@ -230,6 +293,8 @@ UINT_T Objects::joinThread(bool& status) {
 		data.cRadius = cRadius;
 
 		data.exists = true;
+
+		data.scale = targetRadius / data.cRadius;
 
 		// get object index
 		objectHandle = objects.size();
@@ -245,8 +310,6 @@ UINT_T Objects::joinThread(bool& status) {
 		}
 
 		status = true;
-
-
 	}
 	//return threadObjectHandle;
 	return objectHandle;
@@ -309,6 +372,10 @@ void Objects::setVelocity(UINT_T objectHandle, float* velocity) {
 	for (INT_T i = 0; i < 3; ++i) {
 		objects[objectHandle].velocity[i] = velocity[i];
 	}
+}
+
+void Objects::setRadius(INT_T objectHandle, float radius) {
+	objects[objectHandle].scale = radius / objects[objectHandle].cRadius;
 }
 
 

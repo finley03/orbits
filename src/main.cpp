@@ -9,6 +9,9 @@
 //#include "camera.h"
 //#include "objects.h"
 #include "simulation.h"
+#include "gltf.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "stb_image_write.h"
 
 // defined constants for main file
 
@@ -44,6 +47,10 @@ int main() {
 	// if initialization fails return from main with
 	// non-zero value
 	if (!init()) return -1;
+
+	bool status;
+	UINT_T size;
+	//GLB_GenMesh("./assets/EarthClouds_1_12756.glb", size, status);
 
 	// main loop will continue to run if true
 	bool run = true;

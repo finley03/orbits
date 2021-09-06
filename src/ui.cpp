@@ -8,6 +8,8 @@
 #include "time.h"
 #include "simulation.h"
 
+//const char* emptyString = "";
+
 extern Screen* screen;
 //extern Camera* camera;
 //extern Objects* objects;
@@ -21,7 +23,7 @@ void UI_ConfigureStyle();
 void UI_MenuBar(SDL_Window* window);
 void UI_ControlWindow(SDL_Window* window, bool* p_open);
 void UI_OutputWindow(SDL_Window* window, bool* p_open);
-bool UI_FSReadDialog(SDL_Window* window, std::string& writeback, bool* p_open, const char* extension = "", bool hideOtherExtensions = false);
+bool UI_FSReadDialog(SDL_Window* window, std::string& writeback, bool* p_open, std::vector<const char*> extensions = { "" }, bool hideOtherExtensions = false);
 
 void UI_InputSimulationTab();
 void UI_InputObjectsTab(SDL_Window* window);
@@ -380,12 +382,14 @@ void UI_InputSimulationTab() {
 			ImGuiInputTextFlags_EnterReturnsTrue;
 
 		static float timeAcceleration = simulation.getTimeAcceleration();
-		if (ImGui::InputFloat("Time Acceleration##simulation", &timeAcceleration, NULL, NULL, "%.1f", inputflags)) {
+		ImGui::TextUnformatted("Time Accelerlation");
+		if (ImGui::InputFloat("##Time Acceleration##simulation", &timeAcceleration, NULL, NULL, "%.1f", inputflags)) {
 			simulation.setTimeAcceleration(timeAcceleration);
 		}
 		// maximum world time for an iteration
 		static float maxIterationTime = simulation.getMaxIterationTime();
-		if (ImGui::InputFloat("Max Iteration Time (s)##simulation", &maxIterationTime, NULL, NULL, "%.0f", inputflags)) {
+		ImGui::TextUnformatted("Max Iteration Time(s)");
+		if (ImGui::InputFloat("##Max Iteration Time (s)##simulation", &maxIterationTime, NULL, NULL, "%.0f", inputflags)) {
 			simulation.setMaxIterationTime(maxIterationTime);
 		}
 
@@ -414,7 +418,7 @@ void UI_InputObjectsTab(SDL_Window* window) {
 		bool objectOpened = false;
 		static std::string objectPath;
 		if (show_fs_dialog) {
-			objectOpened = UI_FSReadDialog(window, objectPath, &show_fs_dialog, ".obj", true);
+			objectOpened = UI_FSReadDialog(window, objectPath, &show_fs_dialog, { ".obj", ".glb" }, true);
 			if (objectOpened) {
 				//objects->newObjectThread(objectPath.c_str());
 				simulation.objects.newObjectThread(objectPath.c_str());
@@ -587,6 +591,8 @@ void UI_OutputObjects() {
 				// flags for numeric inputs
 				static ImGuiInputTextFlags inputflags =
 					ImGuiInputTextFlags_EnterReturnsTrue;
+					ImGuiInputTextFlags_CharsScientific;
+
 				static ImGuiSliderFlags sliderflags =
 					ImGuiSliderFlags_Logarithmic;
 
@@ -596,12 +602,12 @@ void UI_OutputObjects() {
 				simulation.objects.getOrientation(object, objectOrientation);
 
 				// position input / output
-				if (ImGui::InputFloat3("Position##output", objectPosition, "%.2f", inputflags)) {
+				if (ImGui::InputFloat3("Position##output", objectPosition, "%.3e m", inputflags)) {
 					simulation.objects.setPosition(object, objectPosition);
 				}
 
 				// velocity input / output
-				if (ImGui::InputFloat3("Velocity##output", objectVelocity, "%.2f", inputflags)) {
+				if (ImGui::InputFloat3("Velocity##output", objectVelocity, "%.3e m/s", inputflags)) {
 					simulation.objects.setVelocity(object, objectVelocity);
 				}
 
@@ -611,14 +617,14 @@ void UI_OutputObjects() {
 				}
 
 				float mass = simulation.objects.getMass(object);
-				if (ImGui::InputFloat("Mass / Kg##output", &mass, NULL, NULL, "%.0f", inputflags)) {
+				if (ImGui::InputFloat("Mass##output", &mass, NULL, NULL, "%.5e Kg", inputflags)) {
 					simulation.objects.setMass(object, mass);
 				}
 
-				float scale = simulation.objects.getScale(object);
+				float radius = simulation.objects.getRadius(object);
 				// change scale of model
-				if (ImGui::DragFloat("Scale##output", &scale, 0.6f, 0.001f, 1000.0f, "%.2f", sliderflags)) {
-					simulation.objects.setScale(object, scale);
+				if (ImGui::DragFloat("Radius##output", &radius, 0.6f, 1.0f, 1.0E9f, "%.5e m", sliderflags)) {
+					simulation.objects.setRadius(object, radius);
 				}
 
 				ImGui::Spacing();
@@ -634,7 +640,7 @@ void UI_OutputObjects() {
 
 				if (ImGui::BeginTable("objectinfo##output", 2, tableflags)) {
 					UI_TableInt("Vertices", nrVertices);
-					//UI_TableFloat("Radius", simulation.objects.getRadius(object));
+					UI_TableFloat("Radius", simulation.objects.getRadius(object));
 
 					ImGui::EndTable();
 				}
@@ -701,7 +707,7 @@ void UI_TableFloat(const char* text, float a) {
 
 
 // procedure creates a file dialog and returns a file path
-bool UI_FSReadDialog(SDL_Window* window, std::string& writeback, bool* p_open, const char* extension, bool hideOtherExtensions) {
+bool UI_FSReadDialog(SDL_Window* window, std::string& writeback, bool* p_open, std::vector<const char*> extensions, bool hideOtherExtensions) {
 	// get imgui io handler reference (static - only needs to be initialised once)
 	static ImGuiIO& io = ImGui::GetIO();
 	// get window size
@@ -767,7 +773,18 @@ bool UI_FSReadDialog(SDL_Window* window, std::string& writeback, bool* p_open, c
 			// use one color if item is directory
 			if (fs::is_directory(p)) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 1.0f, 1.0f));
 			// if not directory and not selected extension and hideOtherExtensions skip item
-			else if (hideOtherExtensions && strcmp(extension, p.path().extension().string().c_str()) != 0) continue;
+			//else if (hideOtherExtensions && strcmp(extension, p.path().extension().string().c_str()) != 0) continue;
+			else if (hideOtherExtensions) {
+				bool continuebool = true;
+				for (auto it = extensions.begin(); it != extensions.end(); ++it) {
+					if (strcmp(*it, p.path().extension().string().c_str()) == 0) {
+						continuebool = false;
+						break;
+					}
+				}
+				if (continuebool) continue;
+				else ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
+			}
 			// if file use different color
 			else ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
 			// create selectable element for directory element
@@ -781,7 +798,15 @@ bool UI_FSReadDialog(SDL_Window* window, std::string& writeback, bool* p_open, c
 					}
 					else {
 						// if file extension is required and extension does not match
-						if (*extension && strcmp(extension, p.path().extension().string().c_str()) != 0) {
+						bool extensionMatch = false;
+						for (auto it = extensions.begin(); it != extensions.end(); ++it) {
+							if (strcmp(*it, p.path().extension().string().c_str()) == 0) {
+								extensionMatch = true;
+								break;
+							}
+						}
+						//if (*extension && strcmp(extension, p.path().extension().string().c_str()) != 0) {
+						if (!extensionMatch) {
 							invalidExtension = true;
 						}
 						else {
@@ -825,7 +850,7 @@ bool UI_FSReadDialog(SDL_Window* window, std::string& writeback, bool* p_open, c
 		ImGui::SameLine();
 	}
 	else if (invalidExtension) {
-		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Extension must be %s", extension);
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Extension invalid");
 		ImGui::SameLine();
 	}
 
@@ -839,7 +864,15 @@ bool UI_FSReadDialog(SDL_Window* window, std::string& writeback, bool* p_open, c
 		}
 		else {
 			// if file extension is required
-			if (*extension && strcmp(extension, selectedpath.extension().string().c_str()) != 0) {
+			bool extensionMatch = false;
+			for (auto it = extensions.begin(); it != extensions.end(); ++it) {
+				if (strcmp(*it, selectedpath.extension().string().c_str()) == 0) {
+					extensionMatch = true;
+					break;
+				}
+			}
+			//if (*extension && strcmp(extension, selectedpath.extension().string().c_str()) != 0) {
+			if (!extensionMatch) {
 				//if (strcmp(extension, selectedpath.extension().string().c_str()) != 0) {
 				invalidExtension = true;
 			}

@@ -10,6 +10,7 @@
 #include "shaders.h"
 //#include "camera.h"
 #include "obj.h"
+#include "gltf.h"
 
 
 // extern camera pointer declaration
@@ -103,6 +104,7 @@ private:
 	UINT_T sizeVertices;
 	bool status;
 	float cRadius;
+	const float targetRadius = 1.0f;
 
 	// pointer to texture buffers for use on thread
 	uint8_t* ambientBuffer;
@@ -138,6 +140,7 @@ public:
 	void setVisible(UINT_T objectHandle, bool visible);
 	void setMass(UINT_T objectHandle, float mass);
 	void setVelocity(UINT_T objectHandle, float* velocity);
+	void setRadius(INT_T objectHandle, float radius);
 
 	// getters for various attributes
 	void getPosition(UINT_T objectHandle, float* writeback);

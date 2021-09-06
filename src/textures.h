@@ -20,9 +20,12 @@ public:
 	// must pass texture unit to bind texture to
 	uint32_t newTexture(const char* filePath, bool& status);
 
-	// Texture loading function for use with multithreading
+	// Image loading function for use with multithreading
 	// can be called from any thread
-	bool loadTextureToBuffer(const char* filePath, uint8_t*& buffer);
+	bool loadImageToBuffer(const char* filePath, uint8_t*& buffer);
+
+	// Image loading function for file already loaded into ram
+	bool parseImageToBuffer(uint8_t* data, INT_T size, uint8_t*& buffer);
 
 	// Texture generation function for use with multithreading
 	// must be called from primary OpenGL thread

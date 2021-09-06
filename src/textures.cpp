@@ -70,18 +70,37 @@ uint32_t Textures::newTexture(const char* filePath, bool& status) {
 	return texture;
 }
 
-bool Textures::loadTextureToBuffer(const char* filePath, uint8_t*& buffer) {
+bool Textures::loadImageToBuffer(const char* filePath, uint8_t*& buffer) {
 	bool status = true;
 	// load texture from file
 	//int texWidth, texHeight, nrChannels;
 	//uint32_t cSpace;
+	uint8_t* data = nullptr;
+	INT_T size;
+	readFileToByteArray(filePath, data, size);
 	//stbi_set_flip_vertically_on_load(true);
-	buffer = stbi_load(filePath, &texWidth, &texHeight, &nrChannels, 0);
+	//buffer = stbi_load(filePath, &texWidth, &texHeight, &nrChannels, 0);
+	buffer = stbi_load_from_memory(data, size, &texWidth, &texHeight, &nrChannels, 0);
+	free(data);
 	// check colorspace is correct
 	if (!colorSpace(nrChannels, cSpace)) {
 		// free data and return
 		stbi_image_free(buffer);
 		status = false;
+	}
+	return status;
+}
+
+bool Textures::parseImageToBuffer(uint8_t* data, INT_T size, uint8_t*& buffer) {
+	bool status = true;
+
+	buffer = stbi_load_from_memory(data, size, &texWidth, &texHeight, &nrChannels, 4);
+
+	if (!colorSpace(nrChannels, cSpace)) {
+		// free data and return
+		stbi_image_free(buffer);
+		status = false;
+		std::cout << "error\n";
 	}
 	return status;
 }

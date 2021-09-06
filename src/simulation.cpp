@@ -11,8 +11,11 @@ Simulation::Simulation() : camera(), objects(this, objectsStatus) {
 	if (!objectsStatus) return;
 
 	// init camera to useful position
-	float position[3] = { 5.0f, 5.0f, 10.0f };
+	//float position[3] = { 5.0f, 5.0f, 10.0f };
+	float position[3] = {0.0f, 0.0f, 20.0f};
 	camera.setPosition(position);
+	//camera.setRange(1E6, 1E12);
+	camera.setRange(5, 5E6);
 	camera.calculateProjectionMatrix();
 	camera.calculateViewMatrix();
 

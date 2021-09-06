@@ -66,7 +66,7 @@ void warnUnknownParam(std::string filePath, const char* strptr) {
 
 // due to the massive number of shared variables, it just makes sense to
 // put this code in one function rather than divide it up.
-OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, bool& status) {
+OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, Textures& textures, bool& status) {
 	// read file to string and convert to C const char*
 	std::string fileString;
 	std::string mtlFileString;
@@ -427,29 +427,52 @@ OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, bool& status) {
 						// case for ambient texture map
 						// map_Ka
 					case 'a':
+					{
 						ptrnextvalue(lineptr);
-						materials.back().ambientTexturePath.assign(folderPath);
-						materials.back().ambientTexturePath.append(lineptr, strcspn(lineptr, " \n"));
+						//materials.back().ambientTexturePath.assign(folderPath);
+						//materials.back().ambientTexturePath.append(lineptr, strcspn(lineptr, " \n"));
+						std::string texPath;
+						texPath.assign(folderPath);
+						texPath.append(lineptr, strcspn(lineptr, " \n"));
+						textures.loadImageToBuffer(texPath.c_str(), materials.back().ambientTexturePointer);
 						materials.back().textureAmbient = true;
 						break;
+					}
 
 						// case for diffuse texture map
 						// map_Kd
 					case 'd':
+					{
 						ptrnextvalue(lineptr);
-						materials.back().diffuseTexturePath.assign(folderPath);
-						materials.back().diffuseTexturePath.append(lineptr, strcspn(lineptr, " \n"));
+						//materials.back().diffuseTexturePath.assign(folderPath);
+						//materials.back().diffuseTexturePath.append(lineptr, strcspn(lineptr, " \n"));
+						std::string texPath;
+						texPath.assign(folderPath);
+						texPath.append(lineptr, strcspn(lineptr, " \n"));
+						textures.loadImageToBuffer(texPath.c_str(), materials.back().diffuseTexturePointer);
+						//uint8_t* buffer = nullptr;
+						//INT_T size;
+						//readFileToByteArray(texPath, buffer, size);
+						//textures.parseImageToBuffer(buffer, size, materials.back().diffuseTexturePointer);
+						//textures.loadImageToBuffer(texPath.c_str(), materials.back().diffuseTexturePointer);
 						materials.back().textureDiffuse = true;
 						break;
+					}
 
 						// case for specular texture map
 						// map_Ks
 					case 's':
+					{
 						ptrnextvalue(lineptr);
-						materials.back().specularTexturePath.assign(folderPath);
-						materials.back().specularTexturePath.append(lineptr, strcspn(lineptr, " \n"));
+						//materials.back().specularTexturePath.assign(folderPath);
+						//materials.back().specularTexturePath.append(lineptr, strcspn(lineptr, " \n"));
+						std::string texPath;
+						texPath.assign(folderPath);
+						texPath.append(lineptr, strcspn(lineptr, " \n"));
+						textures.loadImageToBuffer(texPath.c_str(), materials.back().specularTexturePointer);
 						materials.back().textureSpecular = true;
 						break;
+					}
 
 					default:
 						warnUnknownParam(mtlFilePath, lineptr - 5);

@@ -1,11 +1,11 @@
-// header file for .obj file interpreter
+// header file for GLTF / GLB file interpreter
 // this largely uses C where appropriate
 // for speed reasons, however C++ containers
 // are sometimes used to avoid the pitfalls
 // of static types
 
-#ifndef OBJ_H
-#define OBJ_H
+#ifndef GLTF_H
+#define GLTF_H
 
 #include "util.h"
 #include "textures.h"
@@ -15,6 +15,8 @@
 // float position[3]
 // float normalVector[3]
 // float textureCoords[2]
-OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, Textures& textures, bool& status);
+OBJ_Data GLTF_GenMesh(const char* filePath, UINT_T& size, Textures& textures, bool& status);
+
+OBJ_Data GLB_GenMesh(const char* filePath, UINT_T& size, Textures& textures, bool& status);
 
 #endif

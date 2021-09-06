@@ -122,6 +122,37 @@ typedef union {
 	float reg[sizeof(Color_Type) / sizeof(float)];
 } Color;
 
+
+struct OBJ_Material {
+	float ambient[3] = { 0.1f, 0.1f, 0.1f };
+	float diffuse[3] = { 1.0f, 0.4f, 0.4f };
+	float specular[3] = { 0.0f, 0.0f, 0.0f };
+	//float emmision[3] = {0.0f, 0.0f, 0.0f};
+	float alpha = 1.0f;
+	float specularExponent = 32.0f;
+	bool textureDiffuse = false;
+	bool textureAmbient = false;
+	bool textureSpecular = false;
+	//std::string ambientTexturePath;
+	//std::string diffuseTexturePath;
+	//std::string specularTexturePath;
+	uint8_t* ambientTexturePointer = nullptr;
+	uint8_t* diffuseTexturePointer = nullptr;
+	uint8_t* specularTexturePointer = nullptr;
+};
+
+// structure describing all data about an object
+typedef struct {
+	// data about vertices
+	std::vector<float> mesh;
+	// material data
+	std::vector<OBJ_Material> materials;
+	// array that describes how materials and
+	// vertices are linked
+	// Format: vertexindex, materialindex
+	std::vector<std::pair<UINT_T, UINT_T>> matIndexes;
+} OBJ_Data;
+
 // Reads file given in const char* path
 // to C++ std::string. Uses container type
 // because returning dynamically allocated arrays
@@ -146,6 +177,26 @@ bool readFileToString(T filePath, std::string& writeback) {
 	// convert to string and populate writeback variable
 	writeback = buffer.str();
 
+	return true;
+}
+
+
+template <typename T>
+bool readFileToByteArray(T filePath, uint8_t*& writeback, INT_T& wbSize) {
+	// oppen file
+	std::ifstream f(filePath, std::ifstream::binary);
+	// check if file successfully opened
+	// therefore check if the file exists
+	if (!f.is_open()) {
+		std::cout << "Error: could not find file: " << filePath << "\n";
+		return false;
+	}
+	f.seekg(0, f.end);
+	INT_T size = f.tellg();
+	f.seekg(0, f.beg);
+	writeback = (uint8_t*)realloc(writeback, size);
+	f.read((char*)writeback, size);
+	wbSize = size;
 	return true;
 }
 
