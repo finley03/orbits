@@ -14,9 +14,6 @@ private:
 	// used to check init of Objects class
 	bool objectsStatus;
 
-	// timer class to track time of simulation
-	//Timer timer;
-
 	// rate of time in simulation relative to real time.
 	float timeAcceleration = 10000;
 	// maximum world time of iteration in seconds
@@ -26,9 +23,9 @@ private:
 
 	float simulationRate = 30;
 
-	// thread assets
-	std::thread simulationThread;
-	bool simulationRun = false;
+	//// thread assets
+	//std::thread simulationThread;
+	//bool simulationRun = false;
 
 	// is simulation paused
 	bool paused = true;
