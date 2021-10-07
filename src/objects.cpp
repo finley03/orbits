@@ -229,8 +229,6 @@ UINT_T Objects::joinThread(bool& status) {
 		objectThread.join();
 		threadDone = false;
 
-		std::cout << "test2\n";
-
 		// construct object data
 		ObjectData data;
 		// generate vertex buffer object
@@ -240,8 +238,6 @@ UINT_T Objects::joinThread(bool& status) {
 		std::cout << objdata.mesh.size() << "\n";
 		// pass size of mesh and position of first value
 		glBufferData(GL_ARRAY_BUFFER, objdata.mesh.size() * sizeof(float), &objdata.mesh[0], GL_STATIC_DRAW);
-
-		std::cout << "test3\n";
 
 		// transfer material data
 		for (INT_T i = 0; i < objdata.materials.size(); ++i) {
@@ -271,7 +267,7 @@ UINT_T Objects::joinThread(bool& status) {
 				mat.textureDiffuse = true;
 				//mat.diffuseTextureHandle = textures.newTexture(obj.diffuseTexturePath.c_str(), status);
 				mat.diffuseTextureHandle = textures.newTextureFromBuffer(obj.diffuseTexturePointer, status);
-				printf("%s\n", status ? "success" : "fail");
+				//printf("%s\n", status ? "success" : "fail");
 				//if (!status) return 0;
 			}
 			if (obj.textureSpecular) {
@@ -283,8 +279,6 @@ UINT_T Objects::joinThread(bool& status) {
 
 			data.materials.push_back(mat);
 		}
-
-		std::cout << "test4\n";
 
 		// transfer material index data
 		data.materialIndexes = objdata.matIndexes;
