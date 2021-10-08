@@ -30,7 +30,7 @@ void UI_InputObjectsTab(SDL_Window* window);
 void UI_InputRenderingTab();
 void UI_OutputObjects();
 
-void UI_EditObject(SDL_Window* window, UINT_T handle, bool* p_open);
+void UI_EditObject(UINT_T handle, bool* p_open);
 
 void UI_TableInt(const char* text, INT_T a);
 void UI_TableFloat(const char* text, float a);
@@ -59,7 +59,7 @@ void UI(SDL_Window* window) {
 
 	for (auto it = objectEditors.begin(); it != objectEditors.end(); ++it) {
 		bool p_open = true;
-		UI_EditObject(window, *it, &p_open);
+		UI_EditObject(*it, &p_open);
 		if (!p_open) {
 			objectEditors.erase(it);
 			objectEditors.shrink_to_fit();
@@ -169,8 +169,8 @@ void UI_ControlWindow(SDL_Window* window, bool* p_open) {
 		ImGuiTabBarFlags_Reorderable;
 
 	if (ImGui::BeginTabBar("Tabs##input", tabflags)) {
-		UI_InputSimulationTab();
 		UI_InputObjectsTab(window);
+		UI_InputSimulationTab();
 		UI_InputRenderingTab();
 
 		ImGui::EndTabBar();
@@ -227,8 +227,11 @@ void UI_InputSimulationTab() {
 		static float timeAcceleration = simulation.getTimeAcceleration();
 		ImGui::TextUnformatted("Time Accelerlation");
 		if (ImGui::InputFloat("##Time Acceleration##simulation", &timeAcceleration, NULL, NULL, "%.1f", inputflags)) {
-			simulation.setTimeAcceleration(timeAcceleration);
+			if (timeAcceleration > 0) {
+				simulation.setTimeAcceleration(timeAcceleration);
+			}
 		}
+		if (timeAcceleration <= 0) ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Time Acceleration must be positive");
 
 		ImGui::Spacing();
 		const char* qualityItems[] = { "Awful", "Low", "Normal", "High", "Very High" };
@@ -338,14 +341,14 @@ void UI_InputObjectsTab(SDL_Window* window) {
 
 				// check mouse is double clicked and that vector does not contain value already
 				if (ImGui::IsMouseDoubleClicked(0)) {
-					//// if objects is not in current tab list show it
-					//if (!contains(openObjects, *it)) {
-					//	openObjects.push_back(*it);
-					//}
-					//// regardless set active tab to object
-					//output_active_tab = *it;
-					//output_set_active_tab = true;
-					//show_output_window = true;
+					// if objects is not in current tab list show it
+					if (!contains(openObjects, *it)) {
+						openObjects.push_back(*it);
+					}
+					// regardless set active tab to object
+					output_active_tab = *it;
+					output_set_active_tab = true;
+					show_output_window = true;
 				}
 			}
 			// Object View Button
@@ -525,10 +528,6 @@ void UI_OutputObjects() {
 				simulation.objects.getVelocity(object, objectVelocity);
 				simulation.objects.getOrientation(object, objectOrientation);
 
-				//// position input / output
-				//if (ImGui::InputFloat3("Position##output", objectPosition, "%.3e m", inputflags)) {
-				//	simulation.objects.setPosition(object, objectPosition);
-				//}
 				ImGui::Text("Position / m");
 				if (ImGui::BeginTable("position##output", 2, tableflags | ImGuiTableFlags_SizingFixedFit)) {
 					UI_TableFloatStd("X", objectPosition[0]);
@@ -538,10 +537,6 @@ void UI_OutputObjects() {
 					ImGui::EndTable();
 				}
 
-				//// velocity input / output
-				//if (ImGui::InputFloat3("Velocity##output", objectVelocity, "%.3e m/s", inputflags)) {
-				//	simulation.objects.setVelocity(object, objectVelocity);
-				//}
 				ImGui::Spacing();
 				ImGui::Text("Velocity / ms^-1");
 				if (ImGui::BeginTable("position##output", 2, tableflags | ImGuiTableFlags_SizingFixedFit)) {
@@ -552,10 +547,6 @@ void UI_OutputObjects() {
 					ImGui::EndTable();
 				}
 
-				//// orientation input / output
-				//if (ImGui::InputFloat3("Orientation##output", objectOrientation, "%.2f", inputflags)) {
-				//	simulation.objects.setOrientation(object, objectOrientation);
-				//}
 				ImGui::Spacing();
 				ImGui::Text("Orientation / degrees");
 				if (ImGui::BeginTable("position##output", 2, tableflags | ImGuiTableFlags_SizingFixedFit)) {
@@ -565,17 +556,6 @@ void UI_OutputObjects() {
 
 					ImGui::EndTable();
 				}
-
-				//float mass = simulation.objects.getMass(object);
-				//if (ImGui::InputFloat("Mass##output", &mass, NULL, NULL, "%.5e Kg", inputflags)) {
-				//	simulation.objects.setMass(object, mass);
-				//}
-
-				//float radius = simulation.objects.getRadius(object);
-				//// change scale of model
-				//if (ImGui::DragFloat("Radius##output", &radius, 0.6f, 1.0f, 1.0E9f, "%.5e m", sliderflags)) {
-				//	simulation.objects.setRadius(object, radius);
-				//}
 
 				ImGui::Spacing();
 				ImGui::Text("Object Info");
@@ -639,22 +619,22 @@ void UI_OutputObjects() {
 }
 
 
-void UI_EditObject(SDL_Window* window, UINT_T handle, bool* p_open) {
+void UI_EditObject(UINT_T handle, bool* p_open) {
 	// get imgui io handler reference (static - only needs to be initialised once)
 	static ImGuiIO& io = ImGui::GetIO();
-	// get window size
-	INT_T windowWidth, windowHeight;
 	// set constraints on window size
 	ImGui::SetNextWindowSize(ImVec2(300, NULL), ImGuiCond_Once);
 	// flags for window
 	static ImGuiWindowFlags windowflags =
 		ImGuiWindowFlags_NoCollapse;
 
+	// create reference to simulation
 	Simulation& simulation = *simulations[activeSimulation];
 
 	static char buffer[128];
 	// generate window name containing unique ID
 	sprintf(buffer, "Edit Object \"%s\" (0x%X)", simulation.objects.getName(handle).c_str(), handle);
+	// begin window
 	ImGui::Begin(buffer, p_open, windowflags);
 
 	// flags for numeric inputs
@@ -665,23 +645,27 @@ void UI_EditObject(SDL_Window* window, UINT_T handle, bool* p_open) {
 	static ImGuiSliderFlags sliderflags =
 		ImGuiSliderFlags_Logarithmic;
 
+	// variables for working with object values
 	float objectPosition[3], objectVelocity[3], objectOrientation[3];
+	// bools for if a value should be set
 	bool setPosition = false, setVelocity = false, setOrientation = false;
+	// get values
 	simulation.objects.getPosition(handle, objectPosition);
 	simulation.objects.getVelocity(handle, objectVelocity);
 	simulation.objects.getOrientation(handle, objectOrientation);
 
+	// input box width
 	ImGui::PushItemWidth(250);
-
+	// section title
 	ImGui::Text("Position / m");
-
+	// input floats in X Y and Z
 	if (ImGui::InputFloat("X##editposition", objectPosition, NULL, NULL, "%.5e", inputflags)) setPosition = true;
 	if (ImGui::InputFloat("Y##editposition", objectPosition + 1, NULL, NULL, "%.5e", inputflags)) setPosition = true;
 	if (ImGui::InputFloat("Z##editposition", objectPosition + 2, NULL, NULL, "%.5e", inputflags)) setPosition = true;
 
 	ImGui::Spacing();
 	ImGui::Text("Velocity / ms^-1");
-
+	// repeat for other axes
 	if (ImGui::InputFloat("X##editvelocity", objectVelocity, NULL, NULL, "%.5e", inputflags)) setVelocity = true;
 	if (ImGui::InputFloat("Y##editvelocity", objectVelocity + 1, NULL, NULL, "%.5e", inputflags)) setVelocity = true;
 	if (ImGui::InputFloat("Z##editvelocity", objectVelocity + 2, NULL, NULL, "%.5e", inputflags)) setVelocity = true;
@@ -695,30 +679,36 @@ void UI_EditObject(SDL_Window* window, UINT_T handle, bool* p_open) {
 
 	ImGui::Spacing();
 	ImGui::Text("Mass / Kg");
-
-	float mass = simulation.objects.getMass(handle);
-	if (ImGui::InputFloat("##editmass", &mass, NULL, NULL, "%.5e Kg", inputflags)) {
-		simulation.objects.setMass(handle, mass);
+	// single float input with validation (must be non-negative) for mass
+	static float mass = simulation.objects.getMass(handle);
+	if (ImGui::InputFloat("##editmass", &mass, NULL, NULL, "%.5e", inputflags)) {
+		if (mass >= 0) {
+			simulation.objects.setMass(handle, mass);
+		}
 	}
+	if (mass < 0) ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Mass cannot be negative");
 
 	ImGui::Spacing();
 	ImGui::Text("Radius / m");
-
-	float radius = simulation.objects.getRadius(handle);
+	// and same for radius
+	static float radius = simulation.objects.getRadius(handle);
 	// change scale of model
-	if (ImGui::DragFloat("##editradius", &radius, 0.6f, 1.0f, 1.0E9f, "%.5e m", sliderflags)) {
-		simulation.objects.setRadius(handle, radius);
+	if (ImGui::InputFloat("##editradius", &radius, NULL, NULL, "%.5e", inputflags)) {
+		if (radius >= 0) {
+			simulation.objects.setRadius(handle, radius);
+		}
 	}
-
+	if (radius < 0) ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Radius cannot be negative");
+	// all values pushed must be popped
 	ImGui::PopItemWidth();
 
-
+	// set values if required
 	if (setPosition) simulation.objects.setPosition(handle, objectPosition);
 	if (setVelocity) simulation.objects.setVelocity(handle, objectVelocity);
 	if (setOrientation) simulation.objects.setOrientation(handle, objectOrientation);
 	setPosition = false, setVelocity = false, setOrientation = false;
 
-
+	// end window
 	ImGui::End();
 }
 
@@ -748,11 +738,12 @@ void UI_TableFloatStd(const char* text, float a) {
 	// format data for printing on the right
 	static char buffer[32];
 	INT_T power = (a != 0) ? static_cast<INT_T>(log10(ABS(a))) : 0;
-	if (a < 1E7 && a >= 1E-4 || a == 0) {
+	if (ABS(a) < 1E7 && ABS(a) >= 1E-4 || a == 0) {
 		INT_T decimalPlaces = MAX_2(5 - power, 0);
 		sprintf(buffer, "%.*f         ", decimalPlaces, a);
 	}
 	else {
+		if (ABS(a) < 1E-4) --power;
 		sprintf(buffer, "%.5fx10^%d", a / pow(10, power), power);
 	}
 	ImGui::TextUnformatted(buffer);

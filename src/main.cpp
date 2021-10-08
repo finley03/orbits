@@ -270,6 +270,30 @@ bool init() {
 
 	UI_ConfigureStyle();
 
+	Simulation& simulation = *simulations[activeSimulation];
+	simulation.objects.newObject("./assets/planet.obj", status);
+	simulation.objects.newObject("./assets/planet.obj", status);
+	if (!status) {
+		std::cout << "Initialization failed" << "\n";
+	}
+
+	auto it = simulation.objects.begin();
+
+	float obj1pos[3] = { 1, 0, 0 };
+	float obj2pos[3] = { -10, 0, 0 };
+	float obj1vel[3] = { 0, 0, -2.7E-5 };
+	float obj2vel[3] = { 0, 0, 2.7E-4 };
+	simulation.objects.setPosition(*it, obj1pos);
+	simulation.objects.setVelocity(*it, obj1vel);
+	simulation.objects.setMass(*it, 10000);
+	simulation.objects.setRadius(*it, 2);
+	simulation.objects.setName(*it, "Planet 1");
+	++it;
+	simulation.objects.setPosition(*it, obj2pos);
+	simulation.objects.setVelocity(*it, obj2vel);
+	simulation.objects.setName(*it, "Planet 2");
+
+
 	// if the function has reached this point, it's succeded
 	return true;
 }
