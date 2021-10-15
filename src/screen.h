@@ -45,6 +45,9 @@ private:
 	bool shaderStatus;
 	Shader screenShader;
 
+	// texture unit number
+	INT_T textureUnit;
+
 	SDL_Window* window;
 
 	// Color type for use in getClearColor() function
@@ -52,13 +55,18 @@ private:
 public:
 	// Pass a pointer to the window object to the constructor.
 	//Screen(SDL_Window* window);
+	// constructor for screen for full screen
 	Screen(SDL_Window* window, bool& success);
+	// constructor for texture (window)
+	Screen(INT_T width, INT_T height, bool& success);
 	// destuctor
 	~Screen();
 	// Clears the screen using the pre set clear color
 	void clear();
 	// Swaps the current renderbuffer on to the screen
 	void swap();
+	// get texture
+	uint32_t getTexture();
 	// Sets the clear color of the screen
 	void setClearColor(float r, float g, float b, float a);
 	// Sets the clear color of the screen

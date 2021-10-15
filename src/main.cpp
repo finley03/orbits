@@ -10,6 +10,7 @@
 //#include "objects.h"
 #include "simulation.h"
 #include "gltf.h"
+#include "csys.h"
 //#define STB_IMAGE_IMPLEMENTATION
 //#include "stb_image_write.h"
 
@@ -29,11 +30,15 @@ SDL_GLContext gl_context;
 // externally declared global object pointers
 
 Screen* screen;
+Screen* windowScreen;
+Csys* csys;
 Timer* frameTimer;
 std::vector<Simulation*> simulations;
 extern INT_T activeSimulation;
 //Camera* camera;
 //Objects* objects;
+
+void* testTexture;
 
 // forward definitions of main functions
 
@@ -57,6 +62,13 @@ int main() {
 	while (run) {
 		// process all os events
 		run = handleEvents();
+
+		//windowScreen->clear();
+
+		//testTexture = (void*)windowScreen->getTexture();
+		csys->draw();
+		testTexture = (void*)csys->getTexHandle();
+
 		// clear screen for rendering
 		screen->clear();
 
@@ -66,6 +78,7 @@ int main() {
 
 		// swap renderbuffer to screen
 		screen->swap();
+
 		// wait delay to fill out frame
 		frameTimer->delay();
 	}
@@ -222,6 +235,8 @@ bool init() {
 	screen = new Screen(window, status);
 	// check successful init
 	if (!status) return false;
+	//windowScreen = new Screen(300, 300, status);
+	
 	// create frame timer
 	frameTimer = new Timer();
 	//// create camera object
@@ -233,15 +248,20 @@ bool init() {
 	simulations[activeSimulation]->reportProgramFrameRate(frameTimer->getRateCap());
 	//simulations[activeSimulation]->startRunThread();
 
+	csys = new Csys(&simulations[activeSimulation]->camera, 200, 200);
+
 	//// init camera to useful position
 	//float position[3] = { 5.0f, 5.0f, 10.0f };
 	//camera->setPosition(position);
 	//camera->calculateProjectionMatrix();
 	//camera->calculateViewMatrix();
 
+	//windowScreen->setViewport(300, 300);
+	//windowScreen->setClearColor(0.1f, 0.1f, 0.7f, 1.0f);
 	// set details for the screen
 	screen->setViewport(width, height);
 	screen->setClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+
 
 	// set OpenGL flags for rendering
 
@@ -307,6 +327,7 @@ void shutdown() {
 	// delete will also call destructors
 	// for these objects
 	delete screen;
+	delete windowScreen;
 	delete frameTimer;
 	for (auto it = simulations.begin(); it != simulations.end(); ++it) delete *it;
 	//delete camera;

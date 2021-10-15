@@ -7,6 +7,7 @@
 #include "objects.h"
 #include "camera.h"
 #include "time.h"
+#include "csys.h"
 
 // simulation class controls objects, rendering, and movement
 class Simulation {
@@ -34,6 +35,7 @@ private:
 public:
 	Camera camera;
 	Objects objects;
+	//Csys csys;
 
 	// constructor
 	Simulation();

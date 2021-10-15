@@ -14,8 +14,93 @@ Screen::Screen(SDL_Window* window, bool& success) : screenShader(vertexFilePath,
     // init window reference
     this->window = window;
 
+    this->textureUnit = textureUnit;
+
     // get window size
     SDL_GetWindowSize(window, &width, &height);
+
+    // generate framebuffer object
+    glGenFramebuffers(1, &FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+    // create multisample framebuffer
+    glGenTextures(1, &MSAABUFFER);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, MSAABUFFER);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, ANTIALIASING_SAMPLES, GL_RGB, width, height, GL_TRUE);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+    // assign texture as framebuffer
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, MSAABUFFER, 0);
+
+
+    // create renderbuffer object
+    glGenRenderbuffers(1, &RBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, ANTIALIASING_SAMPLES, GL_DEPTH_COMPONENT24, width, height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    // link renderbuffer to framebuffer
+    //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+    // check framebuffer is complete
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Failed to create framebuffer" << std::endl;
+        success = false;
+        return;
+    }
+
+    // unbind framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+    // generate framebuffer object
+    glGenFramebuffers(1, &IFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, IFBO);
+
+
+    // create screen texture for rendering
+    glGenTextures(1, &SCREENTEX);
+    glBindTexture(GL_TEXTURE_2D, SCREENTEX);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    // assign texture as framebuffer
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, SCREENTEX, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // check framebuffer is complete
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Failed to create framebuffer" << std::endl;
+        success = false;
+        return;
+    }
+
+    // unbind framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+    // create vertex buffer object for rendering quad
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+
+    // set texture uniform in shader to represent texture unit 0
+    screenShader.setInt("scrTex", 0);
+
+    success = true;
+}
+
+
+Screen::Screen(INT_T width, INT_T height, bool& success) : screenShader(vertexFilePath, fragmentFilePath, shaderStatus) {
+    // check shader compiled successfully
+    if (!shaderStatus) {
+        success = false;
+        return;
+    }
+
+    this->textureUnit = textureUnit;
 
     // generate framebuffer object
     glGenFramebuffers(1, &FBO);
@@ -102,9 +187,12 @@ Screen::~Screen() {
 
 
 void Screen::clear() {
-    // clear screen using set clear color
-    glClearColor(clearColor.bit.r, clearColor.bit.g, clearColor.bit.b, clearColor.bit.a);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // no cluee why this code was here, but it's useless.
+
+    //// clear screen using set clear color
+    //glClearColor(clearColor.bit.r, clearColor.bit.g, clearColor.bit.b, clearColor.bit.a);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, width, height);
 
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
     glClearColor(clearColor.bit.r, clearColor.bit.g, clearColor.bit.b, clearColor.bit.a);
@@ -144,6 +232,39 @@ void Screen::swap() {
 
     // swap buffer to window
     SDL_GL_SwapWindow(window);
+}
+
+
+uint32_t Screen::getTexture() {
+    // blit multisampled framebuffer to normal colorbuffer
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, FBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, IFBO);
+    glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    // clear screen
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(clearColor.bit.r, clearColor.bit.g, clearColor.bit.b, clearColor.bit.a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+
+    // use quad shader
+    screenShader.use();
+
+    // set textures and uniforms
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, SCREENTEX);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    return SCREENTEX;
 }
 
 
