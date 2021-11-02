@@ -10,7 +10,7 @@
 #include "csys.h"
 
 //const char* emptyString = "";
-extern void* testTexture;
+//extern void* testTexture;
 extern Csys* csys;
 
 extern Screen* screen;
@@ -39,7 +39,7 @@ void UI_TableInt(const char* text, INT_T a);
 void UI_TableFloat(const char* text, float a);
 void UI_TableFloatStd(const char* text, float a);
 
-void UI_ImageTest();
+//void UI_CSYSWindow();
 
 // boolean for output window is global so other windows can modify it
 static bool show_output_window = false;
@@ -72,7 +72,7 @@ void UI(SDL_Window* window) {
 		}
 	}
 
-	//UI_ImageTest();
+	//UI_CSYSWindow();
 
 	simulations[activeSimulation]->runFrame();
 
@@ -156,7 +156,7 @@ void UI_MenuBar(SDL_Window* window) {
 	if (show_imgui_demo) ImGui::ShowDemoWindow(&show_imgui_demo);
 	if (show_control_window) UI_ControlWindow(window, &show_control_window);
 	if (show_output_window) UI_OutputWindow(window, &show_output_window);
-	if (show_csys_display) UI_ImageTest();
+	if (show_csys_display) csys->showWindow();
 }
 
 // procedure for control window
@@ -725,47 +725,47 @@ void UI_EditObject(UINT_T handle, bool* p_open) {
 }
 
 
-void UI_ImageTest() {
-	// get imgui io handler reference (static - only needs to be initialised once)
-	static ImGuiIO& io = ImGui::GetIO();
-	// set constraints on window size
-	ImGui::SetNextWindowSize(ImVec2(204, 208), ImGuiCond_Once);
-	// flags for window
-	static ImGuiWindowFlags windowflags =
-		ImGuiWindowFlags_NoCollapse |
-		ImGuiWindowFlags_NoTitleBar |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoScrollbar;
-
-	bool p_open = true;
-	// begin window
-	ImGui::Begin("Image Test", &p_open, windowflags);
-
-	ImGui::SetCursorPos(ImVec2(0, 4));
-
-	ImGui::Image(testTexture, ImVec2(200, 200));
-
-	// get matrices
-	glm::mat4 view = csys->getViewMatrix();
-	glm::mat4 projection = csys->getProjectionMatrix();
-	glm::mat4 mat = projection * view;
-	glm::vec2 Xpos = glm::vec2(mat * glm::vec4(1.15f, 0.0f, 0.0f, 1.0f));
-	glm::vec2 Ypos = glm::vec2(mat * glm::vec4(0.0f, 1.15f, 0.0f, 1.0f));
-	glm::vec2 Zpos = glm::vec2(mat * glm::vec4(0.0f, 0.0f, 1.15f, 1.0f));
-
-	//ImDrawList* drawlist = ImGui::GetWindowDrawList();
-	//const char* X = "X";
-	//drawlist->AddText(ImVec2(20, 20), 0xFFFFFFFF, X, X);
-	ImGui::SetCursorPos(ImVec2(Xpos.x * 100 + 97, Xpos.y * 100 + 97));
-	ImGui::TextUnformatted("X");
-	ImGui::SetCursorPos(ImVec2(Ypos.x * 100 + 97, Ypos.y * 100 + 97));
-	ImGui::TextUnformatted("Y");
-	ImGui::SetCursorPos(ImVec2(Zpos.x * 100 + 97, Zpos.y * 100 + 97));
-	ImGui::TextUnformatted("Z");
-
-	// end window
-	ImGui::End();
-}
+//void UI_CSYSWindow() {
+//	// get imgui io handler reference (static - only needs to be initialised once)
+//	static ImGuiIO& io = ImGui::GetIO();
+//	// set constraints on window size
+//	ImGui::SetNextWindowSize(ImVec2(204, 208), ImGuiCond_Once);
+//	// flags for window
+//	static ImGuiWindowFlags windowflags =
+//		ImGuiWindowFlags_NoCollapse |
+//		ImGuiWindowFlags_NoTitleBar |
+//		ImGuiWindowFlags_NoResize |
+//		ImGuiWindowFlags_NoScrollbar;
+//
+//	bool p_open = true;
+//	// begin window
+//	ImGui::Begin("Image Test", &p_open, windowflags);
+//
+//	ImGui::SetCursorPos(ImVec2(0, 4));
+//
+//	ImGui::Image(testTexture, ImVec2(200, 200));
+//
+//	// get matrices
+//	glm::mat4 view = csys->getViewMatrix();
+//	glm::mat4 projection = csys->getProjectionMatrix();
+//	glm::mat4 mat = projection * view;
+//	glm::vec2 Xpos = glm::vec2(mat * glm::vec4(1.15f, 0.0f, 0.0f, 1.0f));
+//	glm::vec2 Ypos = glm::vec2(mat * glm::vec4(0.0f, 1.15f, 0.0f, 1.0f));
+//	glm::vec2 Zpos = glm::vec2(mat * glm::vec4(0.0f, 0.0f, 1.15f, 1.0f));
+//
+//	//ImDrawList* drawlist = ImGui::GetWindowDrawList();
+//	//const char* X = "X";
+//	//drawlist->AddText(ImVec2(20, 20), 0xFFFFFFFF, X, X);
+//	ImGui::SetCursorPos(ImVec2(Xpos.x * 100 + 97, Xpos.y * 100 + 97));
+//	ImGui::TextUnformatted("X");
+//	ImGui::SetCursorPos(ImVec2(Ypos.x * 100 + 97, Ypos.y * 100 + 97));
+//	ImGui::TextUnformatted("Y");
+//	ImGui::SetCursorPos(ImVec2(Zpos.x * 100 + 97, Zpos.y * 100 + 97));
+//	ImGui::TextUnformatted("Z");
+//
+//	// end window
+//	ImGui::End();
+//}
 
 
 void UI_TableInt(const char* text, INT_T a) {

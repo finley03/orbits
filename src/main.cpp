@@ -38,7 +38,7 @@ extern INT_T activeSimulation;
 //Camera* camera;
 //Objects* objects;
 
-void* testTexture;
+//void* testTexture;
 
 // forward definitions of main functions
 
@@ -63,11 +63,7 @@ int main() {
 		// process all os events
 		run = handleEvents();
 
-		//windowScreen->clear();
-
-		//testTexture = (void*)windowScreen->getTexture();
 		csys->draw();
-		testTexture = (void*)csys->getTexHandle();
 
 		// clear screen for rendering
 		screen->clear();
@@ -248,7 +244,7 @@ bool init() {
 	simulations[activeSimulation]->reportProgramFrameRate(frameTimer->getRateCap());
 	//simulations[activeSimulation]->startRunThread();
 
-	csys = new Csys(&simulations[activeSimulation]->camera, 200, 200);
+	csys = new Csys(&simulations[activeSimulation]->camera, 100, 100);
 
 	//// init camera to useful position
 	//float position[3] = { 5.0f, 5.0f, 10.0f };

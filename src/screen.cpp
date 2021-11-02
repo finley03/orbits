@@ -187,16 +187,16 @@ Screen::~Screen() {
 
 
 void Screen::clear() {
-    // no cluee why this code was here, but it's useless.
-
-    //// clear screen using set clear color
-    //glClearColor(clearColor.bit.r, clearColor.bit.g, clearColor.bit.b, clearColor.bit.a);
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // assign viewport dimensions
     glViewport(0, 0, width, height);
 
+    // attach correct framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    // set clear color
     glClearColor(clearColor.bit.r, clearColor.bit.g, clearColor.bit.b, clearColor.bit.a);
+    // clear screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // enable buffer depth bit testing
     glEnable(GL_DEPTH_TEST);
 }
 
