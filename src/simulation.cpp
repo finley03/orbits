@@ -6,7 +6,7 @@ extern "C" {
 }
 
 
-Simulation::Simulation() : camera(), objects(this, objectsStatus) {
+Simulation::Simulation() : camera(), objects(this, objectsStatus)/*, grid(&this->camera)*/ {
 	// check objects class initialized
 	if (!objectsStatus) return;
 
@@ -19,6 +19,11 @@ Simulation::Simulation() : camera(), objects(this, objectsStatus) {
 	camera.calculateProjectionMatrix();
 	camera.calculateViewMatrix();
 
+	//float gridPosition[3] = { 0.0f, 0.0f, 0.0f };
+	//grid.setPosition(gridPosition);
+	//grid.setSize(10);
+	//grid.calculateModelMatrix();
+
 	calcSimulationRate();
 }
 
@@ -30,6 +35,8 @@ Simulation::~Simulation() {
 void Simulation::run(float timeEnlapsed, float** velocities) {
 	INT_T index = 0;
 	for (auto it = objects.begin(); it != objects.end(); ++it) {
+		// skip non-simulated objects
+		if (!objects.getSimulated(*it)) continue;
 
 		//float velocity[3];
 		objects.getVelocity(*it, velocities[index]);
@@ -42,6 +49,8 @@ void Simulation::run(float timeEnlapsed, float** velocities) {
 		for (auto it2 = objects.begin(); it2 != objects.end(); ++it2) {
 			// skip evaluating self
 			if (it == it2) continue;
+			// skip non-simulated objects
+			if (!objects.getSimulated(*it2)) continue;
 
 			float mass2 = objects.getMass(*it2);
 			float position2[3];
@@ -69,6 +78,8 @@ void Simulation::run(float timeEnlapsed, float** velocities) {
 
 	index = 0;
 	for (auto it = objects.begin(); it != objects.end(); ++it) {
+		// skip non-simulated objects
+		if (!objects.getSimulated(*it)) continue;
 		// change in position
 		float deltaS[3];
 		mat_scalar_product(velocities[index], timeEnlapsed * timeAcceleration, 3, deltaS);

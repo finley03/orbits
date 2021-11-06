@@ -139,6 +139,10 @@ struct OBJ_Material {
 	uint8_t* ambientTexturePointer = nullptr;
 	uint8_t* diffuseTexturePointer = nullptr;
 	uint8_t* specularTexturePointer = nullptr;
+
+	bool customShader = false;
+	std::string vertexShaderPath;
+	std::string fragmentShaderPath;
 };
 
 // structure describing all data about an object

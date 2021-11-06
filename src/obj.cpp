@@ -538,6 +538,37 @@ OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, Textures& textures, boo
 					break;
 				}
 				break;
+
+			case 's': // NON_STANDARD .OBJ PARAMETER, ONLY SPECIFIC TO THIS PROGRAM
+				// check if command starts with 'shader_'
+				if (strncmp(lineptr, "shader_", 7) == 0) {
+					lineptr += 7;
+					switch (*lineptr) {
+					case 'V': // case for vertex shader
+						materials.back().customShader = true;
+						ptrnextvalue(lineptr);
+						materials.back().vertexShaderPath.assign(folderPath);
+						materials.back().vertexShaderPath.append(lineptr, strcspn(lineptr, " \n"));
+						std::cout << materials.back().vertexShaderPath << "\n";
+						break;
+
+					case 'F': // case for fragment shader
+						materials.back().customShader = true;
+						ptrnextvalue(lineptr);
+						materials.back().fragmentShaderPath.assign(folderPath);
+						materials.back().fragmentShaderPath.append(lineptr, strcspn(lineptr, " \n"));
+						std::cout << materials.back().fragmentShaderPath << "\n";
+						break;
+
+					default:
+						warnUnknownParam(mtlFilePath, lineptr - 7);
+					}
+				}
+				break;
+
+			default:
+				warnUnknownParam(mtlFilePath, lineptr);
+				break;
 			}
 		}
 

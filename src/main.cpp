@@ -11,6 +11,7 @@
 #include "simulation.h"
 #include "gltf.h"
 #include "csys.h"
+#include "grid.h"
 //#define STB_IMAGE_IMPLEMENTATION
 //#include "stb_image_write.h"
 
@@ -42,6 +43,8 @@ extern INT_T activeSimulation;
 
 // forward definitions of main functions
 
+//Grid* grid;
+
 bool handleEvents();
 bool init();
 void shutdown();
@@ -71,6 +74,8 @@ int main() {
 		// run user interface and render
 		// UI will also handle all objects
 		UI(window);
+
+		//grid->draw();
 
 		// swap renderbuffer to screen
 		screen->swap();
@@ -245,6 +250,11 @@ bool init() {
 	//simulations[activeSimulation]->startRunThread();
 
 	csys = new Csys(&simulations[activeSimulation]->camera, 100, 100);
+	//grid = new Grid(&simulations[activeSimulation]->camera);
+	//float gridPosition[3] = { 0, 0, 0 };
+	//grid->setPosition(gridPosition);
+	//grid->setSize(100);
+	//grid->calculateModelMatrix();
 
 	//// init camera to useful position
 	//float position[3] = { 5.0f, 5.0f, 10.0f };
@@ -268,6 +278,7 @@ bool init() {
 	glDepthFunc(GL_LEQUAL);
 	// enable writing to depth buffer
 	glDepthMask(GL_TRUE);
+	//glDisable(GL_CULL_FACE);
 	// set fragment blending mode for transparent fragments
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// enable blending

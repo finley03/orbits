@@ -76,6 +76,8 @@ void UI(SDL_Window* window) {
 
 	simulations[activeSimulation]->runFrame();
 
+	//simulations[activeSimulation]->grid.draw();
+
 	//objects->renderAll();
 	simulations[activeSimulation]->objects.renderAll();
 
@@ -589,10 +591,17 @@ void UI_OutputObjects() {
 
 				// set wether object is visible
 				bool visible = simulation.objects.getVisible(object);
-				bool staticvisible = visible;
+				bool staticVisible = visible;
 				ImGui::Checkbox("Visible##output", &visible);
 				// just removes one unnecessary function call
-				if (visible != staticvisible) simulation.objects.setVisible(object, visible);
+				if (visible != staticVisible) simulation.objects.setVisible(object, visible);
+
+				// set wether object is simulated
+				bool simulated = simulation.objects.getSimulated(object);
+				bool staticSimulated = simulated;
+				ImGui::Checkbox("Simulated##output", &simulated);
+				// just removes one unnecessary function call
+				if (simulated != staticSimulated) simulation.objects.setSimulated(object, simulated);
 
 				ImGui::Spacing();
 

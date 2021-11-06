@@ -116,6 +116,15 @@ UINT_T Objects::newObject(const char* filePath, bool& status) {
 			if (!status) return 0;
 		}
 
+		// generate custom shaders if required
+		if (obj.customShader) {
+			printf("Custom shader\n");
+			mat.shaderHandle = shaders.size();
+			bool shaderStatus;
+			shaders.push_back(new Shader(obj.vertexShaderPath.c_str(), obj.fragmentShaderPath.c_str(), shaderStatus));
+			if (!shaderStatus) return 0;
+		}
+
 		data.materials.push_back(mat);
 	}
 
@@ -277,6 +286,15 @@ UINT_T Objects::joinThread(bool& status) {
 				//if (!status) return 0;
 			}
 
+			// generate custom shaders if required
+			if (obj.customShader) {
+				printf("Custom shader\n");
+				mat.shaderHandle = shaders.size();
+				bool shaderStatus;
+				shaders.push_back(new Shader(obj.vertexShaderPath.c_str(), obj.fragmentShaderPath.c_str(), shaderStatus));
+				if (!shaderStatus) return 0;
+			}
+
 			data.materials.push_back(mat);
 		}
 
@@ -358,6 +376,10 @@ void Objects::setVisible(UINT_T objectHandle, bool visible) {
 	objects[objectHandle].visible = visible;
 }
 
+void Objects::setSimulated(UINT_T objectHandle, bool simulated) {
+	objects[objectHandle].simulated = simulated;
+}
+
 void Objects::setMass(UINT_T objectHandle, float mass) {
 	objects[objectHandle].mass = mass;
 }
@@ -401,6 +423,10 @@ bool Objects::getVisible(UINT_T objectHandle) {
 	return objects[objectHandle].visible;
 }
 
+bool Objects::getSimulated(UINT_T objectHandle) {
+	return objects[objectHandle].simulated;
+}
+
 float Objects::getMass(UINT_T objectHandle) {
 	return objects[objectHandle].mass;
 }
@@ -423,7 +449,7 @@ void Objects::render(UINT_T objectHandle) {
 	ObjectData& object = objects[objectHandle];
 	Shader& shader = *shaders[defaultShaderHandle];
 
-	shader.use();
+	//shader.use();
 
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::make_vec3(object.position));
@@ -438,23 +464,57 @@ void Objects::render(UINT_T objectHandle) {
 	glm::mat4 view = simulation.camera.getViewMatrix();
 	glm::mat4 projection = simulation.camera.getProjectionMatrix();
 
-	shader.setMat4("model", glm::value_ptr(model));
-	shader.setMat4("view", glm::value_ptr(view));
-	shader.setMat4("projection", glm::value_ptr(projection));
+	//shader.setMat4("model", glm::value_ptr(model));
+	//shader.setMat4("view", glm::value_ptr(view));
+	//shader.setMat4("projection", glm::value_ptr(projection));
 
-	glBindBuffer(GL_ARRAY_BUFFER, object.VBO); // bind vbo of shape
+	//glBindBuffer(GL_ARRAY_BUFFER, object.VBO); // bind vbo of shape
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // vertex attribute pointer
-	glEnableVertexAttribArray(0);
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // vertex attribute pointer
+	//glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // vertex normal attribute pointer
-	glEnableVertexAttribArray(1);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // vertex normal attribute pointer
+	//glEnableVertexAttribArray(1);
 
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // texture attribute pointer
-	glEnableVertexAttribArray(2);
+	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // texture attribute pointer
+	//glEnableVertexAttribArray(2);
+
+	// create last shader varaible with effectively impossible number
+	UINT_T lastShaderHandle = UINT_T_MAX;
 
 	// load materials
 	for (INT_T i = 0; i < object.materialIndexes.size(); ++i) {
+		UINT_T shaderHandle = object.materials[object.materialIndexes[i].second].shaderHandle;
+		if (shaderHandle != lastShaderHandle) {
+			shader = *shaders[shaderHandle];
+			shader.use();
+
+			shader.setMat4("model", glm::value_ptr(model));
+			shader.setMat4("view", glm::value_ptr(view));
+			shader.setMat4("projection", glm::value_ptr(projection));
+
+			// camera position can be useful
+			float position[3];
+			simulation.camera.getPosition(position);
+			shader.setVec3("position", position);
+			// target also useful
+			float target[3];
+			simulation.camera.getTarget(target);
+			shader.setVec3("target", target);
+
+			glBindBuffer(GL_ARRAY_BUFFER, object.VBO); // bind vbo of shape
+
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // vertex attribute pointer
+			glEnableVertexAttribArray(0);
+
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // vertex normal attribute pointer
+			glEnableVertexAttribArray(1);
+
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // texture attribute pointer
+			glEnableVertexAttribArray(2);
+		}
+		lastShaderHandle = shaderHandle;
+
 		// 3 because triangles
 		int startVertex = object.materialIndexes[i].first;
 
@@ -571,3 +631,86 @@ size_t Objects::size() {
 	for (auto it = this->begin(); it != this->end(); ++it) ++count;
 	return count;
 }
+
+
+//// external iterator
+//
+//Objects::externalIterator& Objects::iterator::operator++() {
+//	INT_T i;
+//	for (i = this->n + 1; i < parent->objects.size(); ++i) {
+//		if (parent->objects[i].exists) {
+//			this->n = i;
+//			break;
+//		}
+//	}
+//	// if no valid next object is found, this->n is force incremented
+//	// to trigger a loop break in the caller
+//	if (this->n != i)++this->n;
+//	return *this;
+//}
+//
+//Objects::externalIterator Objects::iterator::operator++(int) {
+//	iterator temp = *this;
+//	INT_T i;
+//	for (i = this->n + 1; i < parent->objects.size(); ++i) {
+//		if (parent->objects[i].exists) {
+//			this->n = i;
+//			break;
+//		}
+//	}
+//	// if no valid next object is found, this->n is force incremented
+//	// to trigger a loop break in the caller
+//	if (this->n != i)++this->n;
+//	return temp;
+//}
+//
+//bool Objects::externalIterator::operator==(const Objects::iterator& i2) {
+//	return (this->n == i2.n);
+//}
+//
+//bool Objects::externalIterator::operator!=(const Objects::iterator& i2) {
+//	return (this->n != i2.n);
+//}
+//
+//bool Objects::externalIterator::operator<(const Objects::iterator& i2) {
+//	return (this->n < i2.n);
+//}
+//
+//UINT_T& Objects::externalIterator::operator*() {
+//	return this->n;
+//}
+//
+//
+//// iterator functions
+//
+//Objects::externalIterator Objects::begin() {
+//	externalIterator it;
+//	it.parent = this;
+//	// find the first existing object
+//	for (UINT_T n = 0; n < objects.size(); ++n) {
+//		if (objects[n].exists) {
+//			it.n = n;
+//			break;
+//		}
+//	}
+//	return it;
+//}
+//
+//Objects::externalIterator Objects::end() {
+//	externalIterator it;
+//	it.parent = this;
+//	//it.n = objects.size() - 1;
+//	for (INT_T n = objects.size() - 1; n >= 0; --n) {
+//		if (objects[n].exists) {
+//			it.n = _UINT(n) + 1;
+//			break;
+//		}
+//	}
+//	return it;
+//}
+//
+//size_t Objects::size() {
+//	size_t count = 0;
+//	for (auto it = this->begin(); it != this->end(); ++it) ++count;
+//	return count;
+//}

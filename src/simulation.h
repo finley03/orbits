@@ -8,6 +8,7 @@
 #include "camera.h"
 #include "time.h"
 #include "csys.h"
+#include "grid.h"
 
 // simulation class controls objects, rendering, and movement
 class Simulation {
@@ -35,6 +36,7 @@ private:
 public:
 	Camera camera;
 	Objects objects;
+	//Grid grid;
 	//Csys csys;
 
 	// constructor

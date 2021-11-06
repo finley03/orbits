@@ -39,7 +39,7 @@ private:
 		uint32_t specularTextureHandle;
 
 		// handle to shader (currently unused)
-		UINT_T shaderHandle;
+		UINT_T shaderHandle = 0;
 	};
 
 	struct ObjectData {
@@ -58,6 +58,10 @@ private:
 		bool visible = true;
 		// false if object is mothballed to be reallocated
 		bool exists = true;
+		// if true object is included in simulation
+		bool simulated = true;
+		// if true object is not visible or modifyable directly by user.
+		bool internal = false;
 
 		// number of vertices to render
 		UINT_T nrVertices;
@@ -138,6 +142,7 @@ public:
 	void setScale(UINT_T objectHandle, float scale);
 	void setName(UINT_T objectHandle, std::string name);
 	void setVisible(UINT_T objectHandle, bool visible);
+	void setSimulated(UINT_T objectHandle, bool visible);
 	void setMass(UINT_T objectHandle, float mass);
 	void setVelocity(UINT_T objectHandle, float* velocity);
 	void setRadius(INT_T objectHandle, float radius);
@@ -149,6 +154,7 @@ public:
 	UINT_T getSize(UINT_T objectHandle);
 	std::string getName(UINT_T objectHandle);
 	bool getVisible(UINT_T objectHandle);
+	bool getSimulated(UINT_T objectHandle);
 	float getMass(UINT_T objectHandle);
 	void getVelocity(UINT_T objectHandle, float* writeback);
 	float getRadius(UINT_T objectHandle);
@@ -181,11 +187,38 @@ public:
 		UINT_T& operator*();
 	};
 
+	//// iterator to iterate through objects
+	//// forward iterator only
+	//// ONLY ITERATES THROUGH NON-INTERNAL OBJECTS
+	//class externalIterator {
+	//private:
+	//public:
+	//	// pointer (this) to parent object
+	//	Objects* parent;
+	//	// handle to object
+	//	UINT_T n = 0;
+
+	//	// overloaded operators for forward iteration
+	//	iterator& operator++();
+	//	iterator operator++(int);
+
+	//	// comparison operators
+	//	bool operator==(const iterator& i2);
+	//	bool operator!=(const iterator& i2);
+	//	bool operator<(const iterator& i2);
+
+	//	// dereference operator to get object handle
+	//	UINT_T& operator*();
+	//};
+
 	// public functions to get iterators
 	iterator begin();
 	iterator end();
+	//externalIterator begin();
+	//externalIterator begin()
 
 	size_t size();
+	//size_t externalSize();
 };
 
 #endif
