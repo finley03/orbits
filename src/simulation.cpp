@@ -152,3 +152,12 @@ void Simulation::setMaxIterationTime(float seconds) {
 float Simulation::getMaxIterationTime() {
 	return maxIterationTime;
 }
+
+
+void Simulation::setGridHandle(UINT_T handle) {
+	gridHandle = handle;
+}
+
+UINT_T Simulation::getGridHandle() {
+	return gridHandle;
+}

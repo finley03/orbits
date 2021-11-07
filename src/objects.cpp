@@ -17,10 +17,12 @@ Objects::Objects(void* parent, bool& status) : textures() {// , shader(defaultVe
 	simulationptr = parent;
 	// shader vector is empty therefore default handle is zero
 	defaultShaderHandle = shaders.size();
+	//defaultShaderHandle = 1;
 	// create default shader
 	// this currently only works with heap allocated shaders
 	// so I have to have a vector of pointers
 	// right now I don't know why
+	shaders.push_back(new Shader(defaultVertexPath, defaultFragmentPath, status));
 	shaders.push_back(new Shader(defaultVertexPath, defaultFragmentPath, status));
 	// check id shader successfully generated
 	if (!status) return;
@@ -118,7 +120,6 @@ UINT_T Objects::newObject(const char* filePath, bool& status) {
 
 		// generate custom shaders if required
 		if (obj.customShader) {
-			printf("Custom shader\n");
 			mat.shaderHandle = shaders.size();
 			bool shaderStatus;
 			shaders.push_back(new Shader(obj.vertexShaderPath.c_str(), obj.fragmentShaderPath.c_str(), shaderStatus));
@@ -380,6 +381,10 @@ void Objects::setSimulated(UINT_T objectHandle, bool simulated) {
 	objects[objectHandle].simulated = simulated;
 }
 
+void Objects::setInternal(UINT_T objectHandle, bool internal) {
+	objects[objectHandle].internal = internal;
+}
+
 void Objects::setMass(UINT_T objectHandle, float mass) {
 	objects[objectHandle].mass = mass;
 }
@@ -390,7 +395,7 @@ void Objects::setVelocity(UINT_T objectHandle, float* velocity) {
 	}
 }
 
-void Objects::setRadius(INT_T objectHandle, float radius) {
+void Objects::setRadius(UINT_T objectHandle, float radius) {
 	objects[objectHandle].scale = radius / objects[objectHandle].cRadius;
 }
 
@@ -427,6 +432,10 @@ bool Objects::getSimulated(UINT_T objectHandle) {
 	return objects[objectHandle].simulated;
 }
 
+bool Objects::getInternal(UINT_T objectHandle) {
+	return objects[objectHandle].internal;
+}
+
 float Objects::getMass(UINT_T objectHandle) {
 	return objects[objectHandle].mass;
 }
@@ -442,12 +451,65 @@ float Objects::getRadius(UINT_T objectHandle) {
 }
 
 
+void Objects::setMaterialValue(UINT_T objectHandle, UINT_T material, MaterialValue attribute, float* value) {
+	Material& mat = objects[objectHandle].materials[material];
+
+	switch (attribute) {
+	case MaterialValue_ambient:
+		mat_copy(value, 3, mat.ambient);
+		break;
+	case MaterialValue_diffuse:
+		mat_copy(value, 3, mat.diffuse);
+		break;
+	case MaterialValue_specular:
+		mat_copy(value, 3, mat.specular);
+		break;
+	case MaterialValue_alpha:
+		mat.alpha = *value;
+		break;
+	case MaterialValue_specularExponent:
+		mat.specularExponent = *value;
+		break;
+	default:
+		break;
+	}
+}
+
+void Objects::getMaterialValue(UINT_T objectHandle, UINT_T material, MaterialValue attribute, float* value) {
+	Material& mat = objects[objectHandle].materials[material];
+
+	switch (attribute) {
+	case MaterialValue_ambient:
+		mat_copy(mat.ambient, 3, value);
+		break;
+	case MaterialValue_diffuse:
+		mat_copy(mat.diffuse, 3, value);
+		break;
+	case MaterialValue_specular:
+		mat_copy(mat.specular, 3, value);
+		break;
+	case MaterialValue_alpha:
+		*value = mat.alpha;
+		break;
+	case MaterialValue_specularExponent:
+		*value = mat.specularExponent;
+		break;
+	default:
+		break;
+	}
+}
+
+UINT_T Objects::getMaterialCount(UINT_T objectHandle) {
+	return objects[objectHandle].materials.size();
+}
+
+
 void Objects::render(UINT_T objectHandle) {
 	//Simulation& simulation = *simulations[activeSimulation];
 	Simulation& simulation = *(Simulation*)simulationptr;
 	// create alias for object
 	ObjectData& object = objects[objectHandle];
-	Shader& shader = *shaders[defaultShaderHandle];
+	//Shader& shader = *shaders[defaultShaderHandle];
 
 	//shader.use();
 
@@ -485,8 +547,8 @@ void Objects::render(UINT_T objectHandle) {
 	// load materials
 	for (INT_T i = 0; i < object.materialIndexes.size(); ++i) {
 		UINT_T shaderHandle = object.materials[object.materialIndexes[i].second].shaderHandle;
+		Shader& shader = *shaders[shaderHandle];
 		if (shaderHandle != lastShaderHandle) {
-			shader = *shaders[shaderHandle];
 			shader.use();
 
 			shader.setMat4("model", glm::value_ptr(model));
@@ -631,86 +693,3 @@ size_t Objects::size() {
 	for (auto it = this->begin(); it != this->end(); ++it) ++count;
 	return count;
 }
-
-
-//// external iterator
-//
-//Objects::externalIterator& Objects::iterator::operator++() {
-//	INT_T i;
-//	for (i = this->n + 1; i < parent->objects.size(); ++i) {
-//		if (parent->objects[i].exists) {
-//			this->n = i;
-//			break;
-//		}
-//	}
-//	// if no valid next object is found, this->n is force incremented
-//	// to trigger a loop break in the caller
-//	if (this->n != i)++this->n;
-//	return *this;
-//}
-//
-//Objects::externalIterator Objects::iterator::operator++(int) {
-//	iterator temp = *this;
-//	INT_T i;
-//	for (i = this->n + 1; i < parent->objects.size(); ++i) {
-//		if (parent->objects[i].exists) {
-//			this->n = i;
-//			break;
-//		}
-//	}
-//	// if no valid next object is found, this->n is force incremented
-//	// to trigger a loop break in the caller
-//	if (this->n != i)++this->n;
-//	return temp;
-//}
-//
-//bool Objects::externalIterator::operator==(const Objects::iterator& i2) {
-//	return (this->n == i2.n);
-//}
-//
-//bool Objects::externalIterator::operator!=(const Objects::iterator& i2) {
-//	return (this->n != i2.n);
-//}
-//
-//bool Objects::externalIterator::operator<(const Objects::iterator& i2) {
-//	return (this->n < i2.n);
-//}
-//
-//UINT_T& Objects::externalIterator::operator*() {
-//	return this->n;
-//}
-//
-//
-//// iterator functions
-//
-//Objects::externalIterator Objects::begin() {
-//	externalIterator it;
-//	it.parent = this;
-//	// find the first existing object
-//	for (UINT_T n = 0; n < objects.size(); ++n) {
-//		if (objects[n].exists) {
-//			it.n = n;
-//			break;
-//		}
-//	}
-//	return it;
-//}
-//
-//Objects::externalIterator Objects::end() {
-//	externalIterator it;
-//	it.parent = this;
-//	//it.n = objects.size() - 1;
-//	for (INT_T n = objects.size() - 1; n >= 0; --n) {
-//		if (objects[n].exists) {
-//			it.n = _UINT(n) + 1;
-//			break;
-//		}
-//	}
-//	return it;
-//}
-//
-//size_t Objects::size() {
-//	size_t count = 0;
-//	for (auto it = this->begin(); it != this->end(); ++it) ++count;
-//	return count;
-//}

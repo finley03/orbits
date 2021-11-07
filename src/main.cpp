@@ -297,12 +297,27 @@ bool init() {
 
 	UI_ConfigureStyle();
 
+	// get simulation reference
 	Simulation& simulation = *simulations[activeSimulation];
+
+	// set camera position
+	float cameraPosition[3] = { 10, 10, 20 };
+	simulation.camera.setPosition(cameraPosition);
+	simulation.camera.calculateViewMatrix();
+	simulation.camera.calculateProjectionMatrix();
+
+	// create objects
 	simulation.objects.newObject("./assets/planet.obj", status);
 	simulation.objects.newObject("./assets/planet.obj", status);
+	UINT_T gridHandle = simulation.objects.newObject("./assets/grid.obj", status);
 	if (!status) {
 		std::cout << "Initialization failed" << "\n";
 	}
+
+	// set grid to internal non-simulated object
+	simulation.objects.setInternal(gridHandle, true);
+	simulation.objects.setSimulated(gridHandle, false);
+	simulation.setGridHandle(gridHandle);
 
 	auto it = simulation.objects.begin();
 

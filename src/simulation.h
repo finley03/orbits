@@ -16,6 +16,9 @@ private:
 	// used to check init of Objects class
 	bool objectsStatus;
 
+	// handle to grid object
+	UINT_T gridHandle = 0;
+
 	// rate of time in simulation relative to real time.
 	float timeAcceleration = 10000;
 	// maximum world time of iteration in seconds
@@ -60,6 +63,9 @@ public:
 	float getTimeAcceleration();
 	void setMaxIterationTime(float seconds);
 	float getMaxIterationTime();
+
+	void setGridHandle(UINT_T handle);
+	UINT_T getGridHandle();
 };
 
 #endif

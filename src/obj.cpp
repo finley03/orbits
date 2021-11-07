@@ -549,7 +549,6 @@ OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, Textures& textures, boo
 						ptrnextvalue(lineptr);
 						materials.back().vertexShaderPath.assign(folderPath);
 						materials.back().vertexShaderPath.append(lineptr, strcspn(lineptr, " \n"));
-						std::cout << materials.back().vertexShaderPath << "\n";
 						break;
 
 					case 'F': // case for fragment shader
@@ -557,13 +556,30 @@ OBJ_Data OBJ_GenMesh(const char* filePath, UINT_T& size, Textures& textures, boo
 						ptrnextvalue(lineptr);
 						materials.back().fragmentShaderPath.assign(folderPath);
 						materials.back().fragmentShaderPath.append(lineptr, strcspn(lineptr, " \n"));
-						std::cout << materials.back().fragmentShaderPath << "\n";
 						break;
 
 					default:
 						warnUnknownParam(mtlFilePath, lineptr - 7);
 					}
 				}
+				break;
+
+			case 'i':
+				if (strncmp(lineptr, "illum", 5) != 0) {
+					warnUnknownParam(mtlFilePath, lineptr);
+				}
+				break;
+
+			case '#':
+				break;
+
+			case '\n':
+				break;
+
+			case ' ':
+				break;
+				
+			case '\0':
 				break;
 
 			default:

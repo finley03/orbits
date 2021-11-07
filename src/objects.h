@@ -12,6 +12,13 @@
 #include "obj.h"
 #include "gltf.h"
 
+typedef enum MaterialValue {
+	MaterialValue_ambient,
+	MaterialValue_diffuse,
+	MaterialValue_specular,
+	MaterialValue_alpha,
+	MaterialValue_specularExponent
+};
 
 // extern camera pointer declaration
 //extern Camera* camera;
@@ -38,7 +45,7 @@ private:
 		uint32_t diffuseTextureHandle;
 		uint32_t specularTextureHandle;
 
-		// handle to shader (currently unused)
+		// handle to shader
 		UINT_T shaderHandle = 0;
 	};
 
@@ -143,9 +150,10 @@ public:
 	void setName(UINT_T objectHandle, std::string name);
 	void setVisible(UINT_T objectHandle, bool visible);
 	void setSimulated(UINT_T objectHandle, bool visible);
+	void setInternal(UINT_T objectHandle, bool internal);
 	void setMass(UINT_T objectHandle, float mass);
 	void setVelocity(UINT_T objectHandle, float* velocity);
-	void setRadius(INT_T objectHandle, float radius);
+	void setRadius(UINT_T objectHandle, float radius);
 
 	// getters for various attributes
 	void getPosition(UINT_T objectHandle, float* writeback);
@@ -155,9 +163,14 @@ public:
 	std::string getName(UINT_T objectHandle);
 	bool getVisible(UINT_T objectHandle);
 	bool getSimulated(UINT_T objectHandle);
+	bool getInternal(UINT_T objectHandle);
 	float getMass(UINT_T objectHandle);
 	void getVelocity(UINT_T objectHandle, float* writeback);
 	float getRadius(UINT_T objectHandle);
+
+	void setMaterialValue(UINT_T objectHandle, UINT_T material, MaterialValue attribute, float* value);
+	void getMaterialValue(UINT_T objectHandle, UINT_T material, MaterialValue attribute, float* value);
+	UINT_T getMaterialCount(UINT_T objectHandle);
 
 	// Procedure to render an object based on its handle
 	void render(UINT_T objectHandle);
@@ -186,30 +199,6 @@ public:
 		// dereference operator to get object handle
 		UINT_T& operator*();
 	};
-
-	//// iterator to iterate through objects
-	//// forward iterator only
-	//// ONLY ITERATES THROUGH NON-INTERNAL OBJECTS
-	//class externalIterator {
-	//private:
-	//public:
-	//	// pointer (this) to parent object
-	//	Objects* parent;
-	//	// handle to object
-	//	UINT_T n = 0;
-
-	//	// overloaded operators for forward iteration
-	//	iterator& operator++();
-	//	iterator operator++(int);
-
-	//	// comparison operators
-	//	bool operator==(const iterator& i2);
-	//	bool operator!=(const iterator& i2);
-	//	bool operator<(const iterator& i2);
-
-	//	// dereference operator to get object handle
-	//	UINT_T& operator*();
-	//};
 
 	// public functions to get iterators
 	iterator begin();

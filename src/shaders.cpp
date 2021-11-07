@@ -113,6 +113,7 @@ Shader::~Shader() {
 
 
 void Shader::use() {
+	this;
 	glUseProgram(shaderProgram);
 }
 

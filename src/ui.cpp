@@ -299,7 +299,7 @@ void UI_InputObjectsTab(SDL_Window* window) {
 		if (show_fs_dialog) {
 			objectOpened = UI_FSReadDialog(window, objectPath, &show_fs_dialog, { ".obj", ".glb" }, true);
 			if (objectOpened) {
-				//objects->newObjectThread(objectPath.c_str());
+				//simulation.objects.newObject(objectPath.c_str(), objectOpened);
 				simulation.objects.newObjectThread(objectPath.c_str());
 				objectLoadingTimer.start();
 			}
@@ -340,6 +340,9 @@ void UI_InputObjectsTab(SDL_Window* window) {
 		// handle to object to be deleted
 		INT_T deleteObject = -1;
 		for (auto it = simulation.objects.begin(); it != simulation.objects.end(); ++it) {
+			// skip if object is internal
+			if (simulation.objects.getInternal(*it)) continue;
+
 			ImVec4 selectableColor;
 			// check whether object is visible
 			if (simulation.objects.getVisible(*it)) selectableColor = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
@@ -480,6 +483,68 @@ void UI_InputRenderingTab() {
 		else if (frameCap < 5) {
 			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Frame Cap too low");
 		}
+
+
+		// grid settings
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+		ImGui::Text("Grid");
+		ImGui::Spacing();
+
+		UINT_T gridHandle = simulation.getGridHandle();
+
+		// set wether grid is visible
+		bool visible = simulation.objects.getVisible(gridHandle);
+		bool staticVisible = visible;
+		ImGui::Checkbox("Visible##output", &visible);
+		// just removes one unnecessary function call
+		if (visible != staticVisible) simulation.objects.setVisible(gridHandle, visible);
+
+		ImGui::Spacing();
+
+		// set grid height
+		float gridPosition[3];
+		simulation.objects.getPosition(gridHandle, gridPosition);
+		if (ImGui::InputFloat("Height (Y axis)", gridPosition + 1, NULL, NULL, "%.3e", inputflags)) {
+			simulation.objects.setPosition(gridHandle, gridPosition);
+		}
+
+		ImGui::Spacing();
+
+		// set grid color
+		float gridColor[3];
+		static bool valid = true;
+		simulation.objects.getMaterialValue(gridHandle, 0, MaterialValue_diffuse, gridColor);
+		//if (ImGui::InputFloat3("Color", gridColor, "%.2f", inputflags)) {
+		//	valid = true;
+		//	for (INT_T i = 0; i < 3; ++i) {
+		//		if (gridColor[i] < 0 || gridColor[i] > 1) {
+		//			valid = false;
+		//			break;
+		//		}
+		//	}
+		//	if (valid) simulation.objects.setMaterialValue(gridHandle, 0, MaterialValue_diffuse, gridColor);
+		//}
+		//if (!valid) {
+		//	ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Error: value must be between 0 and 1");
+		//}
+		if (ImGui::ColorEdit3("Color", gridColor)) {
+			simulation.objects.setMaterialValue(gridHandle, 0, MaterialValue_diffuse, gridColor);
+		}
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+		ImGui::Text("Background");
+		ImGui::Spacing();
+
+		float clearColor[4];
+		screen->getClearColor(clearColor);
+		if (ImGui::ColorEdit3("color", clearColor)) {
+			screen->setClearColor(clearColor);
+		}
+
 
 		ImGui::EndTabItem();
 	}
