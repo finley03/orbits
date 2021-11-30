@@ -309,7 +309,7 @@ bool init() {
 	// create objects
 	simulation.objects.newObject("./assets/planet.obj", status);
 	simulation.objects.newObject("./assets/planet.obj", status);
-	UINT_T gridHandle = simulation.objects.newObject("./assets/grid.obj", status);
+	UINT_T gridHandle = simulation.objects.newObject("./internal/grid.obj", status);
 	if (!status) {
 		std::cout << "Initialization failed" << "\n";
 	}

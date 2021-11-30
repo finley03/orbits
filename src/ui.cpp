@@ -297,7 +297,7 @@ void UI_InputObjectsTab(SDL_Window* window) {
 		bool objectOpened = false;
 		static std::string objectPath;
 		if (show_fs_dialog) {
-			objectOpened = UI_FSReadDialog(window, objectPath, &show_fs_dialog, { ".obj", ".glb" }, true);
+			objectOpened = UI_FSReadDialog(window, objectPath, &show_fs_dialog, { ".obj" }, true);
 			if (objectOpened) {
 				//simulation.objects.newObject(objectPath.c_str(), objectOpened);
 				simulation.objects.newObjectThread(objectPath.c_str());
