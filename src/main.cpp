@@ -306,9 +306,9 @@ bool init() {
 	simulation.camera.calculateViewMatrix();
 	simulation.camera.calculateProjectionMatrix();
 
+	simulation.objects.newObject("./assets/planet.obj", status);
+	simulation.objects.newObject("./assets/planet.obj", status);
 	// create objects
-	simulation.objects.newObject("./assets/planet.obj", status);
-	simulation.objects.newObject("./assets/planet.obj", status);
 	UINT_T gridHandle = simulation.objects.newObject("./internal/grid.obj", status);
 	if (!status) {
 		std::cout << "Initialization failed" << "\n";

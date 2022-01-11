@@ -1,11 +1,14 @@
 #include "grid.h"
 
 
+// constructor
 Grid::Grid(Camera* camera) : shader(gridVert, gridFrag, shaderStatus) {
+	// set camera pointer
 	this->camera = camera;
 
 	printf("%s\n", shaderStatus ? "pass" : "fail");
 
+	// generate data buffers
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(float), &vertices[0], GL_STATIC_DRAW);
@@ -34,18 +37,22 @@ void Grid::draw() {
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
+	// create pointer to access data in shaders
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // vertex attribute pointer
 	glEnableVertexAttribArray(0);
 
+	// set matrices
 	glm::mat4 view = camera->getViewMatrix();
 	glm::mat4 projection = camera->getProjectionMatrix();
 	shader.setMat4("view", glm::value_ptr(view));
 	shader.setMat4("projection", glm::value_ptr(projection));
 	shader.setMat3("model", glm::value_ptr(model));
+	// set camera position uniform
 	float cameraPosition[3];
 	camera->getPosition(cameraPosition);
 	shader.setVec3("position", cameraPosition);
 	printf("%f, %f, %f\n", cameraPosition[0], cameraPosition[1], cameraPosition[2]);
 
+	// draw square (2 triangles)
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }

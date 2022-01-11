@@ -122,6 +122,7 @@ uint32_t Textures::newTextureFromBuffer(uint8_t*& buffer, bool& status) {
 	// check data loaded
 	if (buffer) {
 		glTexImage2D(GL_TEXTURE_2D, 0, cSpace, texWidth, texHeight, 0, cSpace, GL_UNSIGNED_BYTE, buffer);
+		printf("%d\n", glGetError());
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else {

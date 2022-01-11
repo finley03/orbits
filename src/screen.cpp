@@ -280,7 +280,7 @@ void Screen::setClearColor(float r, float g, float b, float a) {
 void Screen::setClearColor(float* color) {
 	for (uint8_t i = 0; i < 4; ++i) clearColor.reg[i] = color[i];
 	Color_Type& c = clearColor.bit;
-	glClearColor(c.r, c.b, c.g, c.a);
+	glClearColor(c.r, c.g, c.b, c.a);
 }
 
 void Screen::getClearColor(float& r, float& g, float& b, float& a) {
